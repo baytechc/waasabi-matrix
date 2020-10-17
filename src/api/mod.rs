@@ -20,7 +20,16 @@ pub async fn server(port: u16, client: HttpsClient) -> anyhow::Result<(), hyper:
                 let client = Arc::clone(&client);
                 async move {
                     match (req.method(), req.uri().path()) {
-                        (&Method::POST, "/invite") => invite(client, req).await,
+                        (&Method::POST, "/invite") => {
+                            match invite(client, req).await {
+                                Ok(resp) => Ok(resp),
+                                Err(_) => {
+                                    let mut response = Response::new(Body::empty());
+                                    *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+                                    Ok::<_, hyper::Error>(response)
+                                }
+                            }
+                        },
                         _ => {
                             let mut response = Response::new(Body::empty());
                             *response.status_mut() = StatusCode::NOT_FOUND;
@@ -47,18 +56,16 @@ struct ApiInviteUser {
 async fn invite(
     matrix_client: Arc<HttpsClient>,
     request: Request<hyper::Body>,
-) -> anyhow::Result<Response<hyper::Body>, hyper::Error> {
+) -> anyhow::Result<Response<hyper::Body>> {
     let mut response = Response::new(Body::empty());
 
     let whole_body = hyper::body::to_bytes(request.into_body()).await?;
-    let invitation: ApiInviteUser = serde_json::from_slice(&whole_body).unwrap();
+    let invitation: ApiInviteUser = serde_json::from_slice(&whole_body)?;
     if invitation.api_key == "secret" {
         let room_id = matrix::real_room_id(&matrix_client, &invitation.room_id)
-            .await
-            .unwrap();
+            .await?;
         matrix::invite_user(&matrix_client, &room_id, &invitation.user_id)
-            .await
-            .unwrap();
+            .await?;
 
         *response.body_mut() = Body::from(r#"{"status": "ok" }"#);
     } else {

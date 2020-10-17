@@ -1,17 +1,9 @@
-use std::{
-    time::Duration,
-};
+use std::time::Duration;
 
 use assign::assign;
 use futures_util::stream::TryStreamExt as _;
 use ruma::{
-    api::client::r0::{
-        filter::FilterDefinition,
-        membership::{
-            join_room_by_id,
-        },
-        sync::sync_events,
-    },
+    api::client::r0::{filter::FilterDefinition, membership::join_room_by_id, sync::sync_events},
     events::{
         room::message::{MessageEventContent, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
@@ -37,11 +29,19 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
     ));
 
     while let Some(res) = sync_stream.try_next().await? {
-        for (room_id, _invitation) in res.rooms.invite {
-            println!("Joining '{}' by invitation", room_id.as_str());
-            client
+        //dbg!(&res);
+        for (room_id, invitation) in res.rooms.invite {
+            log::info!("Joining '{}' by invitation", room_id.as_str());
+            if let Err(_) = client
                 .request(join_room_by_id::Request::new(&room_id))
-                .await?;
+                .await
+            {
+                log::error!(
+                    "Failed to respond to invitation. Room ID: {:?}, Invitation: {:?}",
+                    room_id,
+                    invitation
+                );
+            }
         }
 
         // Only look at rooms the user hasn't left yet
@@ -64,7 +64,9 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
                     },
                 )) = event
                 {
-                    messages::handle(&client, &room_id, &sender, &msg_body).await?;
+                    if let Err(_) = messages::handle(&client, &room_id, &sender, &msg_body).await {
+                        log::error!("Failed to handle message.");
+                    }
                 }
             }
         }

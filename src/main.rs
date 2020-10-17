@@ -23,6 +23,8 @@ async fn matrix_bot(homeserver_url: Uri, username: &str, password: &str) -> anyh
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     let (homeserver_url, username, password) = match (
         env::args().nth(1),
         env::args().nth(2),
