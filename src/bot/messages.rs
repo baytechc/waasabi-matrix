@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::matrix;
 
 use ruma::{RoomId, UserId};

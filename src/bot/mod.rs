@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::time::Duration;
+use crate::strapi;
 
 use futures_util::stream::TryStreamExt as _;
 use ruma::{
@@ -14,6 +15,7 @@ use ruma_client::{self, HttpsClient};
 use serde::Serialize;
 
 mod messages;
+mod backend;
 
 #[derive(Serialize)]
 struct Message {
@@ -23,7 +25,7 @@ struct Message {
 }
 
 #[derive(Clone, Debug, Serialize)]
-struct RoomInfo {
+pub struct RoomInfo {
     id: String,
     name: Option<String>,
     alias: Option<String>,
@@ -35,7 +37,7 @@ struct StrapiEvent<'a> {
     data: &'a SyncMessageEvent<MessageEventContent>,
 }
 
-pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
+pub async fn event_loop(client: HttpsClient, strapi_client: strapi::Client) -> anyhow::Result<()> {
     let initial_sync_response = client.request(sync_events::Request::new()).await?;
     log::trace!("Initial Sync: {:#?}", initial_sync_response);
 
@@ -87,8 +89,6 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
         Some(Duration::from_secs(30)),
     ));
 
-    let http = reqwest::Client::new();
-
     while let Some(res) = sync_stream.try_next().await? {
         log::trace!("Response: {:#?}", res);
 
@@ -117,25 +117,12 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
             {
                 log::trace!("Room: {:?}, Event: {:?}", room_id, event);
 
+
                 // Send all message events to the backend server.
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(msg)) = &event {
-                    let room_info = all_room_info
-                        .get(&room_id)
-                        .map(Clone::clone)
-                        .unwrap_or_else(|| RoomInfo {
-                            id: room_id.as_str().into(),
-                            name: None,
-                            alias: None,
-                        });
-                    let data = StrapiEvent {
-                        room: room_info,
-                        data: msg,
-                    };
-                    let _resp = http
-                        .post("http://fnordig.de:5678/echo")
-                        .json(&data)
-                        .send()
-                        .await?;
+                    if let Err(e) = backend::post(&strapi_client, &all_room_info, &room_id, msg).await {
+                        log::error!("Failed to post to the backend. Error: {:?}", e);
+                    }
                 }
 
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
