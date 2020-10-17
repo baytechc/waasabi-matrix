@@ -29,7 +29,8 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
     ));
 
     while let Some(res) = sync_stream.try_next().await? {
-        //dbg!(&res);
+        log::trace!("Response: {:?}", res);
+
         for (room_id, invitation) in res.rooms.invite {
             log::info!("Joining '{}' by invitation", room_id.as_str());
             if let Err(_) = client
@@ -52,7 +53,8 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
                 .into_iter()
                 .flat_map(|r| r.deserialize())
             {
-                // Filter out the text messages
+                log::trace!("Room: {:?}, Event: {:?}", room_id, event);
+
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
                     SyncMessageEvent {
                         content:
