@@ -12,6 +12,8 @@ mod matrix;
 async fn matrix_bot(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
     let client = HttpsClient::https(homeserver_url, None);
 
+    // Once randomly chosen, this is now our ID.
+    // Avoids creating new "devices" with every run.
     let device_id: &'static DeviceId = "TBANTADCIL".into();
     let device_name = "ferris-bot";
     client.log_in(username, password, Some(device_id), Some(device_name)).await?;

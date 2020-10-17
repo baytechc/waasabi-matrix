@@ -39,6 +39,7 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
     let initial_sync_response = client.request(sync_events::Request::new()).await?;
     log::trace!("Initial Sync: {:#?}", initial_sync_response);
 
+    // Handle pending invitations on first sync.
     for (room_id, invitation) in initial_sync_response.rooms.invite {
         log::info!("Joining '{}' by invitation", room_id.as_str());
         if let Err(_) = client
@@ -53,6 +54,7 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
         }
     }
 
+    // Collect additional room information such as room names and canonical aliases.
     let mut all_room_info = HashMap::new();
     for (room_id, room) in initial_sync_response.rooms.join {
         let entry = all_room_info
@@ -90,6 +92,7 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
     while let Some(res) = sync_stream.try_next().await? {
         log::trace!("Response: {:#?}", res);
 
+        // Immediately accept new room invitations.
         for (room_id, invitation) in res.rooms.invite {
             log::info!("Joining '{}' by invitation", room_id.as_str());
             if let Err(_) = client
@@ -114,6 +117,7 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
             {
                 log::trace!("Room: {:?}, Event: {:?}", room_id, event);
 
+                // Send all message events to the backend server.
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(msg)) = &event {
                     let room_info = all_room_info
                         .get(&room_id)
@@ -145,6 +149,7 @@ pub async fn event_loop(client: HttpsClient) -> anyhow::Result<()> {
                     },
                 )) = event
                 {
+                    // Handle commands from room messages
                     if let Err(_) = messages::handle(&client, &room_id, &sender, &msg_body).await {
                         log::error!("Failed to handle message.");
                     }

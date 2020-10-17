@@ -26,6 +26,9 @@ fn next_id() -> String {
     NEXT_ID.fetch_add(1, Ordering::SeqCst).to_string()
 }
 
+/// Send a message to a room.
+///
+/// Sends the message as a unformatted plaintext message.
 pub async fn send_message<S: Into<String>>(
     matrix_client: &HttpsClient,
     room_id: &RoomId,
@@ -47,6 +50,10 @@ pub async fn send_message<S: Into<String>>(
     Ok(())
 }
 
+/// Resolve a room alias to a room ID.
+///
+/// Parses the room alias from a string.
+/// The room alias should be in the form `#roomname:homeserver`.
 pub async fn real_room_id(
     matrix_client: &HttpsClient,
     room_alias_id: &str,
@@ -60,6 +67,10 @@ pub async fn real_room_id(
     Ok(room_id)
 }
 
+/// Invite a user to a room.
+///
+/// Parses the user ID from a string.
+/// The user ID should be in the form `@name:homeserver`
 pub async fn invite_user(
     matrix_client: &HttpsClient,
     room_id: &RoomId,
@@ -74,6 +85,9 @@ pub async fn invite_user(
     Ok(())
 }
 
+/// Get the current list of joined rooms.
+///
+/// Returns a list of room IDs.
 pub async fn joined_rooms(matrix_client: &HttpsClient) -> anyhow::Result<Vec<String>> {
     let response = matrix_client.request(joined_rooms::Request::new()).await?;
 

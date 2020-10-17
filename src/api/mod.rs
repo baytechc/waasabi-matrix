@@ -8,6 +8,7 @@ use hyper::{
 use ruma_client::{self, HttpsClient};
 use serde::Deserialize;
 
+/// Start up a server to handle API requests
 pub async fn server(port: u16, client: HttpsClient) -> anyhow::Result<(), hyper::Error> {
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let client = Arc::new(client);
@@ -54,6 +55,8 @@ struct ApiInviteUser {
 }
 
 /// POST /invite
+///
+/// Handle invitation requests and invite the user to a channel.
 async fn invite(
     matrix_client: Arc<HttpsClient>,
     request: Request<hyper::Body>,

@@ -4,6 +4,7 @@ use crate::matrix;
 use ruma::{RoomId, UserId};
 use ruma_client::{self, HttpsClient};
 
+/// Act on room messages
 pub async fn handle(
     client: &HttpsClient,
     room_id: &RoomId,
