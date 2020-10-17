@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 const BACKEND_BASE: &str = "https://backend.rustfest.global";
 
+/// A client to interact with Strapi
 pub struct Client {
     http: reqwest::Client,
     jwt: String,
@@ -24,6 +25,9 @@ fn url(path: &str) -> String {
     format!("{}/{}", BACKEND_BASE, path)
 }
 
+/// Login with an API identifer & password.
+///
+/// This retrieves a JWT token and returns a client usable for authenticated requests.
 pub async fn login(identifier: &str, password: &str) -> anyhow::Result<Client> {
     let http = reqwest::Client::builder()
         .user_agent("ferris-bot/0.1.0")
@@ -40,6 +44,7 @@ pub async fn login(identifier: &str, password: &str) -> anyhow::Result<Client> {
     Ok(Client { http, jwt })
 }
 
+/// Post to the API with an authorized client.
 pub async fn post<T: Serialize + ?Sized>(
     client: &Client,
     path: &str,
