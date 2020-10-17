@@ -6,6 +6,7 @@ use ruma_client::HttpsClient;
 
 mod api;
 mod bot;
+mod matrix;
 
 async fn matrix_bot(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
     let client = HttpsClient::https(homeserver_url, None);
