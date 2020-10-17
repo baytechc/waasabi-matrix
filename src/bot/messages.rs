@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::matrix;
 
 use ruma::{RoomId, UserId};
@@ -9,7 +10,7 @@ pub async fn handle(
     sender: &UserId,
     msg: &str,
 ) -> anyhow::Result<()> {
-    println!("{:?} in {:?}: {}", sender, room_id, msg);
+    println!("({}) <{}> {}", room_id.as_str(), sender.localpart(), msg);
 
     if sender == "@jer:rustch.at" {
         if msg == "!channels" {

@@ -8,10 +8,11 @@ edition = "2018"
 [dependencies]
 ruma-client = { git = "https://github.com/ruma/ruma/", branch = "main" }
 ruma = { git = "https://github.com/ruma/ruma/", branch = "main", features = ["client-api"] }
+#ruma-client = { path = "/Users/jrediger/code/rust/ruma/ruma-client" }
+#ruma = { path = "/Users/jrediger/code/rust/ruma/ruma", features = ["client-api"] }
 
 tokio = { version = "0.2.0", features = ["full"] }
 futures-util = "0.3.6"
-assign = "1.1.0"
 anyhow = "1.0.33"
 url = "2.1.1"
 http = "0.2.1"
@@ -21,3 +22,4 @@ serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.59"
 log = "0.4.11"
 env_logger = "0.8.1"
+reqwest = { version ="0.10.8", features = ["json"] }

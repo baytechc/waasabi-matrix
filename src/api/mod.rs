@@ -23,7 +23,8 @@ pub async fn server(port: u16, client: HttpsClient) -> anyhow::Result<(), hyper:
                         (&Method::POST, "/invite") => {
                             match invite(client, req).await {
                                 Ok(resp) => Ok(resp),
-                                Err(_) => {
+                                Err(e) => {
+                                    log::error!("Failed to invite someone. Error: {:?}", e);
                                     let mut response = Response::new(Body::empty());
                                     *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
                                     Ok::<_, hyper::Error>(response)
