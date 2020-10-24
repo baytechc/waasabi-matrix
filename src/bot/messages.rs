@@ -9,10 +9,11 @@ pub async fn handle(
     room_id: &RoomId,
     sender: &UserId,
     msg: &str,
+    admin_users: &[String]
 ) -> anyhow::Result<()> {
     println!("({}) <{}> {}", room_id.as_str(), sender.localpart(), msg);
 
-    if sender == "@jer:rustch.at" {
+    if admin_users.contains(&sender.as_str().to_string()) {
         if msg == "!channels" {
             println!("channel listing request from Jan-Erik in #rustfest-test");
             let rooms = matrix::joined_rooms(client).await?;

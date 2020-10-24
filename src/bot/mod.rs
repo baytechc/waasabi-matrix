@@ -37,7 +37,7 @@ struct StrapiEvent<'a> {
     data: &'a SyncMessageEvent<MessageEventContent>,
 }
 
-pub async fn event_loop(client: HttpsClient, strapi_client: strapi::Client) -> anyhow::Result<()> {
+pub async fn event_loop(client: HttpsClient, admin_users: Vec<String>, strapi_client: strapi::Client) -> anyhow::Result<()> {
     let initial_sync_response = client.request(sync_events::Request::new()).await?;
     log::trace!("Initial Sync: {:#?}", initial_sync_response);
 
@@ -137,7 +137,7 @@ pub async fn event_loop(client: HttpsClient, strapi_client: strapi::Client) -> a
                 )) = event
                 {
                     // Handle commands from room messages
-                    if let Err(_) = messages::handle(&client, &room_id, &sender, &msg_body).await {
+                    if let Err(_) = messages::handle(&client, &room_id, &sender, &msg_body, &admin_users).await {
                         log::error!("Failed to handle message.");
                     }
                 }
