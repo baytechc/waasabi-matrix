@@ -1,8 +1,8 @@
-use std::env;
+use std::{env, convert::TryFrom};
 
 use futures_util::future;
 use http::Uri;
-use ruma::DeviceId;
+use ruma::{DeviceId, UserId};
 use ruma_client::HttpsClient;
 
 mod api;
@@ -26,11 +26,19 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     // Avoids creating new "devices" with every run.
     let device_id: &'static DeviceId = "TBANTADCIL".into();
     let device_name = "ferris-bot";
-    client.log_in(&cfg.matrix_username, &cfg.matrix_password, Some(device_id), Some(device_name)).await?;
+    client
+        .log_in(
+            &cfg.matrix_username,
+            &cfg.matrix_password,
+            Some(device_id),
+            Some(device_name),
+        )
+        .await?;
+    let bot_id = UserId::try_from(&cfg.matrix_username[..])?;
 
     let strapi_client = strapi::login(&cfg.strapi_user, &cfg.strapi_password).await?;
 
-    let bot = bot::event_loop(client.clone(), cfg.admin_users, strapi_client);
+    let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users, strapi_client);
     let server = api::server(3000, client);
     let (bot_ended, server_ended) = future::join(bot, server).await;
     bot_ended?;
