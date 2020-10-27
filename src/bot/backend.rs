@@ -1,5 +1,4 @@
 use crate::strapi;
-use std::collections::HashMap;
 
 use ruma::{
     events::{
@@ -28,20 +27,11 @@ struct ChatMessage<'a> {
 /// Post a chat message to the backend.
 pub async fn post(
     client: &strapi::Client,
-    room_infos: &HashMap<RoomId, RoomInfo>,
+    room_info: &RoomInfo,
     room_id: &RoomId,
     msg: &SyncMessageEvent<MessageEventContent>,
 ) -> anyhow::Result<()> {
     log::debug!("Posting message from {:?}", room_id);
-
-    let room_info = room_infos
-        .get(&room_id)
-        .map(Clone::clone)
-        .unwrap_or_else(|| RoomInfo {
-            id: room_id.as_str().into(),
-            name: None,
-            alias: None,
-        });
 
     let msg_txt = match &msg.content {
         MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }) => Some(&msg_body[..]),
