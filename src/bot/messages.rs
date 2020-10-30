@@ -54,7 +54,7 @@ pub async fn handle(
                     .collect::<Vec<_>>();
                 let msg = format!("Will create a room named #{}:rustch.at with the name: {}. You will be invited.", alias, name);
                 matrix::send_message(&client, &room_id, msg).await?;
-                matrix::create_room(client, &alias, &name, &invites).await?;
+                matrix::create_room(client, &alias, &name, None, &invites).await?;
             }
         }
 

@@ -20,12 +20,26 @@
 
 ## API
 
+### Invite a user to a room
+
 ```
 POST /invite
 {
     api_key: <secret string>,
     user_id: <@user:homeserver>,
     room_id: <#channel:homeserver>,
+}
+```
+
+### Create a new room on the server
+
+```
+POST /room
+{
+    api_key: <secret string>,
+    alias: <room name>,
+    name: <room display name>,
+    topic: <optional topic for the room>,
 }
 ```
 

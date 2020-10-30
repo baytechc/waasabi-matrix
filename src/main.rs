@@ -40,9 +40,9 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
 
     let strapi_client = strapi::login(&cfg.strapi_user, &cfg.strapi_password).await?;
 
-    let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users, strapi_client);
+    let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users.clone(), strapi_client);
 
-    let server = api::server(cfg.host, cfg.api_secret, client);
+    let server = api::server(cfg.host, cfg.api_secret, cfg.admin_users, client);
     let (bot_ended, server_ended) = future::join(bot, server).await;
     bot_ended?;
     server_ended?;

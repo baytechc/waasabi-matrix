@@ -113,6 +113,7 @@ pub async fn create_room(
     matrix_client: &HttpsClient,
     alias: &str,
     name: &str,
+    topic: Option<&str>,
     invite: &[UserId],
 ) -> anyhow::Result<RoomId> {
     use AnyInitialStateEvent::*;
@@ -120,6 +121,7 @@ pub async fn create_room(
     let mut req = create_room::Request::new();
     req.room_alias_name = Some(alias);
     req.name = Some(name);
+    req.topic = topic;
     req.visibility = Visibility::Private;
     req.invite = invite;
 
