@@ -18,13 +18,13 @@ use ruma::{
     events::{
         room::{
             guest_access::{GuestAccess, GuestAccessEventContent},
+            history_visibility::{HistoryVisibility, HistoryVisibilityEventContent},
+            join_rules::{JoinRule, JoinRulesEventContent},
             message::{MessageEventContent, TextMessageEventContent},
             power_levels::{NotificationPowerLevels, PowerLevelsEventContent},
-            history_visibility::{HistoryVisibility, HistoryVisibilityEventContent},
-            join_rules::{JoinRulesEventContent, JoinRule},
         },
-        AnyInitialStateEvent, AnyMessageEventContent, AnyStateEventContent, InitialStateEvent,
-        EventType,
+        AnyInitialStateEvent, AnyMessageEventContent, AnyStateEventContent, EventType,
+        InitialStateEvent,
     },
     RoomAliasId, RoomId, UserId,
 };
@@ -135,7 +135,7 @@ pub async fn create_room(
         RoomHistoryVisibility(InitialStateEvent {
             content: HistoryVisibilityEventContent::new(HistoryVisibility::Shared),
             state_key: "".into(),
-        })
+        }),
     ];
     req.initial_state = initial_state;
 
@@ -143,7 +143,7 @@ pub async fn create_room(
     let room_id = response.room_id;
 
     //for user in invite {
-        //invite_user(matrix_client, &room_id, user.as_str()).await?
+    //invite_user(matrix_client, &room_id, user.as_str()).await?
     //}
 
     Ok(room_id)

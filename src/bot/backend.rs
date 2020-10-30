@@ -34,7 +34,9 @@ pub async fn post(
     log::debug!("Posting message from {:?}", room_id);
 
     let msg_txt = match &msg.content {
-        MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }) => Some(&msg_body[..]),
+        MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }) => {
+            Some(&msg_body[..])
+        }
         _ => None,
     };
     let chat_message = ChatMessage {
@@ -48,7 +50,10 @@ pub async fn post(
         message_details: &msg,
     };
 
-    log::debug!("Sending data: {}", serde_json::to_string_pretty(&chat_message).unwrap());
+    log::debug!(
+        "Sending data: {}",
+        serde_json::to_string_pretty(&chat_message).unwrap()
+    );
 
     strapi::post(&client, "chat-messages", &chat_message).await?;
 

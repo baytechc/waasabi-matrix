@@ -9,7 +9,11 @@ use ruma_client::{self, HttpsClient};
 use serde::Deserialize;
 
 /// Start up a server to handle API requests
-pub async fn server(addr: SocketAddr, api_secret: String, client: HttpsClient) -> anyhow::Result<(), hyper::Error> {
+pub async fn server(
+    addr: SocketAddr,
+    api_secret: String,
+    client: HttpsClient,
+) -> anyhow::Result<(), hyper::Error> {
     let client = Arc::new(client);
     let api_secret = Arc::new(api_secret);
 
@@ -33,7 +37,7 @@ pub async fn server(addr: SocketAddr, api_secret: String, client: HttpsClient) -
                                     Ok::<_, hyper::Error>(response)
                                 }
                             }
-                        },
+                        }
                         _ => {
                             let mut response = Response::new(Body::empty());
                             *response.status_mut() = StatusCode::NOT_FOUND;
@@ -73,10 +77,8 @@ async fn invite(
         return Ok(response);
     }
 
-    let room_id = matrix::real_room_id(&matrix_client, &invitation.room_id)
-        .await?;
-    matrix::invite_user(&matrix_client, &room_id, &invitation.user_id)
-        .await?;
+    let room_id = matrix::real_room_id(&matrix_client, &invitation.room_id).await?;
+    matrix::invite_user(&matrix_client, &room_id, &invitation.user_id).await?;
 
     *response.body_mut() = Body::from(r#"{"status": "ok" }"#);
 

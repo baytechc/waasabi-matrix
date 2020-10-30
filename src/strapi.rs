@@ -33,7 +33,10 @@ pub async fn login(identifier: &str, password: &str) -> anyhow::Result<Client> {
         .user_agent("ferris-bot/0.1.0")
         .build()?;
 
-    let login = Login { identifier, password };
+    let login = Login {
+        identifier,
+        password,
+    };
     let response = http.post(&url("auth/local")).json(&login).send().await?;
     if response.status() != StatusCode::OK {
         bail!("Failed to login");

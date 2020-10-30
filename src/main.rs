@@ -1,4 +1,4 @@
-use std::{env, convert::TryFrom, net::SocketAddr};
+use std::{convert::TryFrom, env, net::SocketAddr};
 
 use futures_util::future;
 use http::Uri;
@@ -62,7 +62,10 @@ async fn main() -> anyhow::Result<()> {
     let strapi_password = env::var("STRAPI_PASSWORD").expect("Need STRAPI_PASSWORD");
     let admin_users = env::var("ADMIN_USERS").unwrap_or_else(|_| "".into());
     let admin_users = admin_users.split(",").map(|s| s.to_string()).collect();
-    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1:3000".into()).parse().expect("Invalid host");
+    let host = env::var("HOST")
+        .unwrap_or_else(|_| "127.0.0.1:3000".into())
+        .parse()
+        .expect("Invalid host");
     let api_secret = env::var("API_SECRET").expect("Need API_SECRET");
 
     let config = Config {
