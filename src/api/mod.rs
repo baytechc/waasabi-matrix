@@ -15,6 +15,8 @@ struct Config {
     api_secret: String,
 }
 
+static INDEX_PAGE: &str = include_str!("../../index.html");
+
 /// Start up a server to handle API requests
 pub async fn server(
     addr: SocketAddr,
@@ -36,6 +38,11 @@ pub async fn server(
                 let config = Arc::clone(&config);
                 async move {
                     match (req.method(), req.uri().path()) {
+                        (&Method::GET, "/") => {
+                            let mut response = Response::new(Body::from(INDEX_PAGE));
+                            *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+                            Ok::<_, hyper::Error>(response)
+                        },
                         (&Method::POST, "/invite") => match invite(&config, req).await {
                             Ok(resp) => Ok(resp),
                             Err(e) => {
