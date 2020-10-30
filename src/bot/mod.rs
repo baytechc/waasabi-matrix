@@ -229,7 +229,7 @@ async fn handle_timeline(
                             &room_id,
                             &sender,
                             &msg_body,
-                            &bot_state.admin_users,
+                            &mut bot_state.admin_users,
                         )
                         .await
                         {
