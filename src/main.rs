@@ -1,4 +1,4 @@
-use std::{env, convert::TryFrom};
+use std::{env, convert::TryFrom, net::SocketAddr};
 
 use futures_util::future;
 use http::Uri;
@@ -17,6 +17,8 @@ struct Config {
     strapi_user: String,
     strapi_password: String,
     admin_users: Vec<String>,
+    host: SocketAddr,
+    api_secret: String,
 }
 
 async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
@@ -39,7 +41,8 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     let strapi_client = strapi::login(&cfg.strapi_user, &cfg.strapi_password).await?;
 
     let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users, strapi_client);
-    let server = api::server(3000, client);
+
+    let server = api::server(cfg.host, cfg.api_secret, client);
     let (bot_ended, server_ended) = future::join(bot, server).await;
     bot_ended?;
     server_ended?;
@@ -59,6 +62,8 @@ async fn main() -> anyhow::Result<()> {
     let strapi_password = env::var("STRAPI_PASSWORD").expect("Need STRAPI_PASSWORD");
     let admin_users = env::var("ADMIN_USERS").unwrap_or_else(|_| "".into());
     let admin_users = admin_users.split(",").map(|s| s.to_string()).collect();
+    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1:3000".into()).parse().expect("Invalid host");
+    let api_secret = env::var("API_SECRET").expect("Need API_SECRET");
 
     let config = Config {
         matrix_homeserver,
@@ -67,6 +72,8 @@ async fn main() -> anyhow::Result<()> {
         strapi_user,
         strapi_password,
         admin_users,
+        host,
+        api_secret,
     };
 
     matrix_bot(config).await
