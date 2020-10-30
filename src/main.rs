@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
     let admin_users = env::var("ADMIN_USERS").unwrap_or_else(|_| "".into());
     let admin_users = admin_users.split(",").map(|s| s.to_string()).collect();
     let host = env::var("HOST")
-        .unwrap_or_else(|_| "127.0.0.1:3000".into())
+        .unwrap_or_else(|_| "127.0.0.1:8383".into())
         .parse()
         .expect("Invalid host");
     let api_secret = env::var("API_SECRET").expect("Need API_SECRET");
