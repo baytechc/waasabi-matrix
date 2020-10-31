@@ -58,7 +58,7 @@ pub async fn post(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&chat_message).unwrap()
             );
-            let _ = strapi::post(&client, "chat-messages", &chat_message).await;
+            let _ = strapi::post(&client, "_integrations/matrix", &chat_message).await;
         });
     });
 
