@@ -14,6 +14,14 @@ use serde_json::{json, Value as JsonValue};
 use super::RoomInfo;
 
 #[derive(Serialize)]
+struct Data<'a, T> {
+    #[serde(rename = "type")]
+    typ: &'a str,
+
+    data: T
+}
+
+#[derive(Serialize)]
 struct ChatMessage {
     received_by: String,
     channel: String,
@@ -58,7 +66,8 @@ pub async fn post(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&chat_message).unwrap()
             );
-            let _ = strapi::post(&client, "_integrations/matrix", &chat_message).await;
+            let data = Data { typ: "message", data: chat_message };
+            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
         });
     });
 
@@ -66,19 +75,29 @@ pub async fn post(
 }
 
 #[derive(Serialize)]
-struct Rooms<'a> {
-    rooms: Vec<&'a RoomInfo>,
+struct Rooms {
+    rooms: Vec<RoomInfo>,
 }
 
 /// Act on room changes
 pub async fn rooms(
-    _client: &strapi::Client,
+    client: &strapi::Client,
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
-    let rooms = all_rooms.values().collect::<Vec<_>>();
+    let rooms = all_rooms.values().map(|room| room.clone()).collect::<Vec<_>>();
     let rooms = Rooms { rooms };
-    let json = serde_json::to_string(&rooms)?;
-    log::info!("Rooms: {}", json);
+
+    let client = client.clone();
+    dispatcher::launch(move |rt| {
+        rt.block_on(async {
+            log::debug!(
+                "Sending data: {}",
+                serde_json::to_string_pretty(&rooms).unwrap()
+            );
+            let data = Data { typ: "rooms", data: rooms };
+            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
+        });
+    });
 
     Ok(())
 }
