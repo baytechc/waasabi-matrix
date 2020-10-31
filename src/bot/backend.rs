@@ -1,4 +1,4 @@
-use crate::strapi;
+use crate::{strapi, dispatcher};
 use std::collections::HashMap;
 
 use ruma::{
@@ -14,15 +14,15 @@ use serde_json::{json, Value as JsonValue};
 use super::RoomInfo;
 
 #[derive(Serialize)]
-struct ChatMessage<'a> {
-    received_by: &'a str,
-    channel: &'a str,
-    channel_name: Option<&'a str>,
+struct ChatMessage {
+    received_by: String,
+    channel: String,
+    channel_name: Option<String>,
     channel_details: JsonValue,
-    sender: &'a str,
+    sender: String,
     sender_details: Option<JsonValue>,
-    message: Option<&'a str>,
-    message_details: &'a SyncMessageEvent<MessageEventContent>,
+    message: Option<String>,
+    message_details: SyncMessageEvent<MessageEventContent>,
 }
 
 /// Post a chat message to the backend.
@@ -36,19 +36,19 @@ pub async fn post(
 
     let msg_txt = match &msg.content {
         MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }) => {
-            Some(&msg_body[..])
+            Some(msg_body.to_string())
         }
         _ => None,
     };
     let chat_message = ChatMessage {
         received_by: "ferris-bot".into(),
-        channel: room_id.as_str(),
-        channel_name: room_info.name.as_deref(),
+        channel: room_id.as_str().into(),
+        channel_name: room_info.name.clone(),
         channel_details: json!({"alias": room_info.alias}),
-        sender: msg.sender.as_str(),
+        sender: msg.sender.as_str().into(),
         sender_details: None,
         message: msg_txt,
-        message_details: &msg,
+        message_details: msg.clone(),
     };
 
     log::debug!(
@@ -56,7 +56,12 @@ pub async fn post(
         serde_json::to_string_pretty(&chat_message).unwrap()
     );
 
-    strapi::post(&client, "chat-messages", &chat_message).await?;
+    let client = client.clone();
+    dispatcher::launch(move |rt| {
+        rt.block_on(async {
+            let _ = strapi::post(&client, "chat-messages", &chat_message).await;
+        });
+    });
 
     Ok(())
 }

@@ -9,6 +9,7 @@ mod api;
 mod bot;
 mod matrix;
 mod strapi;
+mod dispatcher;
 
 struct Config {
     matrix_homeserver: Uri,

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 const BACKEND_BASE: &str = "https://backend.rustfest.global";
 
 /// A client to interact with Strapi
+#[derive(Clone)]
 pub struct Client {
     http: reqwest::Client,
     jwt: String,
