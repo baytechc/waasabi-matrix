@@ -71,7 +71,13 @@ pub async fn event_loop(
     // Handle pending invitations on first sync.
     let mut state = StateChange::None;
     for (room_id, invitation) in initial_sync_response.rooms.invite {
-        handle_invitation(&bot_state.client, room_id, invitation, &mut bot_state.all_room_info).await;
+        handle_invitation(
+            &bot_state.client,
+            room_id,
+            invitation,
+            &mut bot_state.all_room_info,
+        )
+        .await;
         state = StateChange::Room;
     }
 
@@ -101,7 +107,13 @@ pub async fn event_loop(
 
         // Immediately accept new room invitations.
         for (room_id, invitation) in res.rooms.invite {
-            handle_invitation(&bot_state.client, room_id, invitation, &mut bot_state.all_room_info).await;
+            handle_invitation(
+                &bot_state.client,
+                room_id,
+                invitation,
+                &mut bot_state.all_room_info,
+            )
+            .await;
             state = StateChange::Room;
         }
 
@@ -116,7 +128,8 @@ pub async fn event_loop(
         }
 
         if state == StateChange::Room {
-            if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await {
+            if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await
+            {
                 log::error!("Failed to post room changes to the backend. Error: {:?}", e);
             }
         }
@@ -125,16 +138,22 @@ pub async fn event_loop(
     Ok(())
 }
 
-async fn handle_invitation(client: &HttpsClient, room_id: RoomId, invitation: InvitedRoom, all_room_info: &mut HashMap<RoomId, RoomInfo>) {
+async fn handle_invitation(
+    client: &HttpsClient,
+    room_id: RoomId,
+    invitation: InvitedRoom,
+    all_room_info: &mut HashMap<RoomId, RoomInfo>,
+) {
     log::info!("Joining '{}' by invitation", room_id.as_str());
-    if let Err(_) = client
+    if let Err(e) = client
         .request(join_room_by_id::Request::new(&room_id))
         .await
     {
         log::error!(
-            "Failed to respond to invitation. Room ID: {:?}, Invitation: {:?}",
-            room_id,
-            invitation
+            "Failed to respond to invitation. Room ID: {:?}, Invitation: {:?}\nError: {:?}",
+            room_id.as_str(),
+            invitation,
+            e
         );
     }
 
