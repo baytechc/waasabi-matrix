@@ -15,6 +15,7 @@ struct Config {
     matrix_homeserver: Uri,
     matrix_username: String,
     matrix_password: String,
+    strapi_host: String,
     strapi_user: String,
     strapi_password: String,
     admin_users: Vec<String>,
@@ -39,7 +40,7 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
         .await?;
     let bot_id = UserId::try_from(&cfg.matrix_username[..])?;
 
-    let strapi_client = strapi::login(&cfg.strapi_user, &cfg.strapi_password).await?;
+    let strapi_client = strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
 
     let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users.clone(), strapi_client);
 
@@ -59,6 +60,7 @@ async fn main() -> anyhow::Result<()> {
     let matrix_homeserver = matrix_homeserver.parse()?;
     let matrix_username = env::var("MATRIX_USER").expect("Need MATRIX_USER");
     let matrix_password = env::var("MATRIX_PASSWORD").expect("Need MATRIX_PASSWORD");
+    let strapi_host = env::var("STRAPI_HOST").expect("Need STRAPI_HOST");
     let strapi_user = env::var("STRAPI_USER").expect("Need STRAPI_USER");
     let strapi_password = env::var("STRAPI_PASSWORD").expect("Need STRAPI_PASSWORD");
     let admin_users = env::var("ADMIN_USERS").unwrap_or_else(|_| "".into());
@@ -73,6 +75,7 @@ async fn main() -> anyhow::Result<()> {
         matrix_homeserver,
         matrix_username,
         matrix_password,
+        strapi_host,
         strapi_user,
         strapi_password,
         admin_users,

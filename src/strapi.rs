@@ -2,13 +2,12 @@ use anyhow::bail;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
-const BACKEND_BASE: &str = "https://backend.rustfest.global";
-
 /// A client to interact with Strapi
 #[derive(Clone)]
 pub struct Client {
     http: reqwest::Client,
     jwt: String,
+    base: String,
 }
 
 #[derive(Serialize)]
@@ -22,14 +21,20 @@ struct LoginResponse {
     jwt: String,
 }
 
-fn url(path: &str) -> String {
-    format!("{}/{}", BACKEND_BASE, path)
+fn _url(base: &str, path: &str) -> String {
+    format!("{}/{}", base, path)
+}
+
+impl Client {
+    fn url(&self, path: &str) -> String {
+        _url(&self.base, path)
+    }
 }
 
 /// Login with an API identifer & password.
 ///
 /// This retrieves a JWT token and returns a client usable for authenticated requests.
-pub async fn login(identifier: &str, password: &str) -> anyhow::Result<Client> {
+pub async fn login(base: &str, identifier: &str, password: &str) -> anyhow::Result<Client> {
     let http = reqwest::Client::builder()
         .user_agent("ferris-bot/0.1.0")
         .build()?;
@@ -38,14 +43,14 @@ pub async fn login(identifier: &str, password: &str) -> anyhow::Result<Client> {
         identifier,
         password,
     };
-    let response = http.post(&url("auth/local")).json(&login).send().await?;
+    let response = http.post(&_url(base, "auth/local")).json(&login).send().await?;
     if response.status() != StatusCode::OK {
         bail!("Failed to login");
     }
 
     let response: LoginResponse = response.json().await?;
     let jwt = response.jwt;
-    Ok(Client { http, jwt })
+    Ok(Client { http, jwt, base: base.to_string() })
 }
 
 /// Post to the API with an authorized client.
@@ -57,7 +62,7 @@ pub async fn post<T: Serialize + ?Sized>(
     log::debug!("JWT: {}", client.jwt);
     let res = client
         .http
-        .post(&url(path))
+        .post(&client.url(path))
         .bearer_auth(&client.jwt)
         .json(data)
         .send()
