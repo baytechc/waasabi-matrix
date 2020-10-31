@@ -62,11 +62,11 @@ pub async fn post(
     let client = client.clone();
     dispatcher::launch(move |rt| {
         rt.block_on(async {
+            let data = Data { typ: "message", data: chat_message };
             log::debug!(
                 "Sending data: {}",
-                serde_json::to_string_pretty(&chat_message).unwrap()
+                serde_json::to_string_pretty(&data).unwrap()
             );
-            let data = Data { typ: "message", data: chat_message };
             let _ = strapi::post(&client, "_integrations/matrix", &data).await;
         });
     });
@@ -90,11 +90,11 @@ pub async fn rooms(
     let client = client.clone();
     dispatcher::launch(move |rt| {
         rt.block_on(async {
+            let data = Data { typ: "rooms", data: rooms };
             log::debug!(
                 "Sending data: {}",
-                serde_json::to_string_pretty(&rooms).unwrap()
+                serde_json::to_string_pretty(&data).unwrap()
             );
-            let data = Data { typ: "rooms", data: rooms };
             let _ = strapi::post(&client, "_integrations/matrix", &data).await;
         });
     });
