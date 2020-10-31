@@ -13,7 +13,7 @@ pub async fn handle(
     msg: &str,
     admin_users: &mut Vec<String>,
 ) -> anyhow::Result<()> {
-    println!("({}) <{}> {}", room_id.as_str(), sender.localpart(), msg);
+    log::trace!("({}) <{}> {}", room_id.as_str(), sender.localpart(), msg);
 
     if admin_users.contains(&sender.as_str().to_string()) {
         if msg == "!ping" {
