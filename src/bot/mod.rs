@@ -30,11 +30,12 @@ struct Message {
     message: String,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Default)]
 pub struct RoomInfo {
     id: String,
     name: Option<String>,
     alias: Option<String>,
+    topic: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -161,8 +162,7 @@ async fn handle_invitation(
         .entry(room_id.clone())
         .or_insert_with(|| RoomInfo {
             id: room_id.as_str().into(),
-            name: None,
-            alias: None,
+            ..Default::default()
         });
 }
 
@@ -176,8 +176,7 @@ async fn handle_state(
         .entry(room_id.clone())
         .or_insert_with(|| RoomInfo {
             id: room_id.as_str().into(),
-            name: None,
-            alias: None,
+            ..Default::default()
         });
     let mut entry = real_entry.clone();
 
@@ -223,6 +222,12 @@ async fn handle_statechange(
             entry.name = name;
             StateChange::Room
         }
+        AnySyncStateEvent::RoomTopic(state) => {
+            let topic = state.content.topic;
+            log::debug!("(Room: {}) Received topic: {:?}", room_id, topic);
+            entry.topic = Some(topic);
+            StateChange::Room
+        }
         AnySyncStateEvent::RoomMember(SyncStateEvent {
             content: member,
             sender,
@@ -265,8 +270,7 @@ async fn handle_timeline(
             .entry(room_id.clone())
             .or_insert_with(|| RoomInfo {
                 id: room_id.as_str().into(),
-                name: None,
-                alias: None,
+                ..Default::default()
             });
         let mut entry = real_entry.clone();
 
