@@ -69,17 +69,24 @@ pub async fn event_loop(
         strapi_client,
     };
 
+    let mut pending_invites: HashMap<RoomId, usize> = HashMap::new();
+
     // Handle pending invitations on first sync.
     let mut state = StateChange::None;
     for (room_id, invitation) in initial_sync_response.rooms.invite {
-        handle_invitation(
+        let invite_resp = handle_invitation(
             &bot_state.client,
-            room_id,
-            invitation,
+            room_id.clone(),
+            Some(invitation),
             &mut bot_state.all_room_info,
         )
-        .await;
-        state = StateChange::Room;
+            .await;
+
+        if let Err(_) = invite_resp {
+            pending_invites.insert(room_id, 3);
+        } else {
+            state = StateChange::Room;
+        }
     }
 
     // Collect additional room information such as room names and canonical aliases.
@@ -106,16 +113,43 @@ pub async fn event_loop(
         log::trace!("Response: {:#?}", res);
         let mut state = StateChange::None;
 
-        // Immediately accept new room invitations.
-        for (room_id, invitation) in res.rooms.invite {
-            handle_invitation(
+        let mut to_delete = vec![];
+        for (room_id, tries_left) in pending_invites.iter_mut() {
+            *tries_left -= 1;
+
+            let invite_resp = handle_invitation(
                 &bot_state.client,
-                room_id,
-                invitation,
+                room_id.clone(),
+                None,
                 &mut bot_state.all_room_info,
             )
             .await;
-            state = StateChange::Room;
+            if let Ok(_) = invite_resp {
+                to_delete.push(room_id.clone());
+            } else if *tries_left == 0 {
+                to_delete.push(room_id.clone());
+            }
+        }
+
+        for room_id in to_delete {
+            pending_invites.remove(&room_id);
+        }
+
+        // Immediately accept new room invitations.
+        for (room_id, invitation) in res.rooms.invite {
+            let invite_resp = handle_invitation(
+                &bot_state.client,
+                room_id.clone(),
+                Some(invitation),
+                &mut bot_state.all_room_info,
+            )
+            .await;
+
+            if let Err(_) = invite_resp {
+                pending_invites.insert(room_id, 3);
+            } else {
+                state = StateChange::Room;
+            }
         }
 
         // Only look at rooms the user hasn't left yet
@@ -125,7 +159,10 @@ pub async fn event_loop(
                 state = StateChange::Room;
             }
 
-            handle_timeline(&mut bot_state, &room_id, room.timeline.events).await;
+            let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events).await;
+            if new_state == StateChange::Room {
+                state = StateChange::Room;
+            }
         }
 
         if state == StateChange::Room {
@@ -142,9 +179,9 @@ pub async fn event_loop(
 async fn handle_invitation(
     client: &HttpsClient,
     room_id: RoomId,
-    invitation: InvitedRoom,
+    invitation: Option<InvitedRoom>,
     all_room_info: &mut HashMap<RoomId, RoomInfo>,
-) {
+) -> anyhow::Result<()> {
     log::info!("Joining '{}' by invitation", room_id.as_str());
     if let Err(e) = client
         .request(join_room_by_id::Request::new(&room_id))
@@ -156,6 +193,7 @@ async fn handle_invitation(
             invitation,
             e
         );
+        return Err(e.into());
     }
 
     let _entry = all_room_info
@@ -164,6 +202,7 @@ async fn handle_invitation(
             id: room_id.as_str().into(),
             ..Default::default()
         });
+    Ok(())
 }
 
 async fn handle_state(
@@ -254,7 +293,10 @@ async fn handle_statechange(
             }
             StateChange::Member
         }
-        _ => StateChange::None,
+        state => {
+            log::debug!("Unhandled state: {:?}", state);
+            StateChange::None
+        }
     }
 }
 
@@ -262,7 +304,9 @@ async fn handle_timeline(
     bot_state: &mut State,
     room_id: &RoomId,
     events: Vec<ruma::Raw<AnySyncRoomEvent>>,
-) {
+) -> StateChange {
+    let mut roomstate = StateChange::None;
+
     for event in events.into_iter().flat_map(|r| r.deserialize()) {
         log::trace!("Room: {:?}, Event: {:?}", room_id, event);
         let real_entry = bot_state
@@ -310,7 +354,10 @@ async fn handle_timeline(
                 }
             }
             AnySyncRoomEvent::State(state) => {
-                handle_statechange(bot_state, &mut entry, room_id, state).await;
+                let new_state = handle_statechange(bot_state, &mut entry, room_id, state).await;
+                if new_state == StateChange::Room {
+                    roomstate = StateChange::Room;
+                }
             }
             _ => log::debug!("Unhandled event: {:?}", event),
         }
@@ -319,4 +366,5 @@ async fn handle_timeline(
             .all_room_info
             .insert(room_id.clone(), entry.clone());
     }
+    roomstate
 }
