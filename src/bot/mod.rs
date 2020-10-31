@@ -126,6 +126,7 @@ pub async fn event_loop(
             .await;
             if let Ok(_) = invite_resp {
                 to_delete.push(room_id.clone());
+                state = StateChange::Room;
             } else if *tries_left == 0 {
                 to_delete.push(room_id.clone());
             }
