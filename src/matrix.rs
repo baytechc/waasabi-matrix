@@ -9,7 +9,7 @@ use ruma::{
         alias::get_alias,
         membership::{
             invite_user::{self, InvitationRecipient},
-            joined_rooms,
+            //joined_rooms,
         },
         message::send_message_event,
         room::{create_room, Visibility},
@@ -98,16 +98,16 @@ pub async fn invite_user(
 /// Get the current list of joined rooms.
 ///
 /// Returns a list of room IDs.
-pub async fn joined_rooms(matrix_client: &HttpsClient) -> anyhow::Result<Vec<String>> {
-    let response = matrix_client.request(joined_rooms::Request::new()).await?;
+//pub async fn joined_rooms(matrix_client: &HttpsClient) -> anyhow::Result<Vec<String>> {
+    //let response = matrix_client.request(joined_rooms::Request::new()).await?;
 
-    let rooms = response
-        .joined_rooms
-        .into_iter()
-        .map(|room| room.as_str().to_string())
-        .collect::<Vec<_>>();
-    Ok(rooms)
-}
+    //let rooms = response
+        //.joined_rooms
+        //.into_iter()
+        //.map(|room| room.as_str().to_string())
+        //.collect::<Vec<_>>();
+    //Ok(rooms)
+//}
 
 pub async fn create_room(
     matrix_client: &HttpsClient,

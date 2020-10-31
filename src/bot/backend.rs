@@ -1,4 +1,5 @@
 use crate::strapi;
+use std::collections::HashMap;
 
 use ruma::{
     events::{
@@ -56,6 +57,24 @@ pub async fn post(
     );
 
     strapi::post(&client, "chat-messages", &chat_message).await?;
+
+    Ok(())
+}
+
+#[derive(Serialize)]
+struct Rooms<'a> {
+    rooms: Vec<&'a RoomInfo>,
+}
+
+/// Act on room changes
+pub async fn rooms(
+    _client: &strapi::Client,
+    all_rooms: &HashMap<RoomId, RoomInfo>,
+) -> anyhow::Result<()> {
+    let rooms = all_rooms.values().collect::<Vec<_>>();
+    let rooms = Rooms { rooms };
+    let json = serde_json::to_string(&rooms)?;
+    log::info!("Rooms: {}", json);
 
     Ok(())
 }

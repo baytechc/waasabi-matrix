@@ -1,5 +1,5 @@
 use crate::matrix;
-use std::convert::TryFrom;
+use std::{convert::TryFrom};
 
 use ruma::{RoomId, UserId};
 use ruma_client::{self, HttpsClient};
