@@ -51,14 +51,13 @@ pub async fn post(
         message_details: msg.clone(),
     };
 
-    log::debug!(
-        "Sending data: {}",
-        serde_json::to_string_pretty(&chat_message).unwrap()
-    );
-
     let client = client.clone();
     dispatcher::launch(move |rt| {
         rt.block_on(async {
+            log::debug!(
+                "Sending data: {}",
+                serde_json::to_string_pretty(&chat_message).unwrap()
+            );
             let _ = strapi::post(&client, "chat-messages", &chat_message).await;
         });
     });

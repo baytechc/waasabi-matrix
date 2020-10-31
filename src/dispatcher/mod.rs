@@ -1,7 +1,9 @@
 use std::thread::{self, JoinHandle};
 
-use tokio::runtime::Runtime;
 use crossbeam_channel::{unbounded, SendError, Sender, TrySendError};
+use governor::{Quota, RateLimiter};
+use std::num::NonZeroU32;
+use tokio::runtime::Runtime;
 
 pub use global::*;
 
@@ -40,7 +42,10 @@ struct DispatchGuard {
 }
 
 impl DispatchGuard {
-    pub fn launch(&self, task: impl FnOnce(&mut Runtime) + Send + 'static) -> Result<(), DispatchError> {
+    pub fn launch(
+        &self,
+        task: impl FnOnce(&mut Runtime) + Send + 'static,
+    ) -> Result<(), DispatchError> {
         let task = Command::Task(Box::new(task));
         self.send(task)
     }
@@ -77,10 +82,16 @@ impl Dispatcher {
         let (sender, receiver) = unbounded();
 
         let worker = thread::spawn(move || {
+            let quota = Quota::per_minute(NonZeroU32::new(60).unwrap());
+            let limiter = RateLimiter::direct(quota);
+            let mut rt = Runtime::new().unwrap();
+
             loop {
                 use Command::*;
 
-                let mut rt = Runtime::new().unwrap();
+                rt.block_on(async {
+                    limiter.until_ready().await;
+                });
 
                 match receiver.recv() {
                     Ok(Task(f)) => {
