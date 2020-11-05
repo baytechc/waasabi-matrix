@@ -1,5 +1,5 @@
 use super::matrix;
-use std::{net::SocketAddr, sync::Arc, convert::TryFrom};
+use std::{convert::TryFrom, net::SocketAddr, sync::Arc};
 
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -42,7 +42,7 @@ pub async fn server(
                             let mut response = Response::new(Body::from(INDEX_PAGE));
                             *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
                             Ok::<_, hyper::Error>(response)
-                        },
+                        }
                         (&Method::POST, "/invite") => match invite(&config, req).await {
                             Ok(resp) => Ok(resp),
                             Err(e) => {
@@ -76,7 +76,7 @@ pub async fn server(
     server.await
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct ApiInviteUser {
     user_id: String,
     room_id: String,
@@ -98,6 +98,7 @@ async fn invite(
         *response.status_mut() = StatusCode::FORBIDDEN;
         return Ok(response);
     }
+    log::info!("Received invite request: {:?}", invitation);
 
     let room_id = matrix::real_room_id(&config.client, &invitation.room_id).await?;
     matrix::invite_user(&config.client, &room_id, &invitation.user_id).await?;
@@ -107,7 +108,7 @@ async fn invite(
     Ok(response)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct ApiCreateRoom {
     api_key: String,
     alias: String,
@@ -130,8 +131,13 @@ async fn create_room(
         *response.status_mut() = StatusCode::FORBIDDEN;
         return Ok(response);
     }
+    log::info!("Received create_room: {:?}", room);
 
-    let invite = config.admin_users.iter().map(|user| UserId::try_from(&user[..]).unwrap()).collect::<Vec<_>>();
+    let invite = config
+        .admin_users
+        .iter()
+        .map(|user| UserId::try_from(&user[..]).unwrap())
+        .collect::<Vec<_>>();
     matrix::create_room(
         &config.client,
         &room.alias,
