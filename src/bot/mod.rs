@@ -326,7 +326,7 @@ async fn handle_timeline(
         let mut entry = real_entry.clone();
 
         match event {
-            AnySyncRoomEvent::Message(msg) if !handle_messages => {
+            AnySyncRoomEvent::Message(msg) if handle_messages => {
                 // Send all message events to the backend server.
                 if let AnySyncMessageEvent::RoomMessage(msg) = msg {
                     if let Err(e) =
