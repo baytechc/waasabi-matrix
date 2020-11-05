@@ -45,7 +45,7 @@ pub async fn login(base: &str, identifier: &str, password: &str) -> anyhow::Resu
     };
     let response = http.post(&_url(base, "auth/local")).json(&login).send().await?;
     if response.status() != StatusCode::OK {
-        bail!("Failed to login");
+        bail!("Failed to login, status: {:?}", response.status());
     }
 
     let response: LoginResponse = response.json().await?;
