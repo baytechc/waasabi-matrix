@@ -95,6 +95,11 @@ pub async fn event_loop(
         if new_state == StateChange::Room {
             state = StateChange::Room;
         }
+
+        let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events, false).await;
+        if new_state == StateChange::Room {
+            state = StateChange::Room;
+        }
     }
     if state == StateChange::Room {
         if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await {
@@ -160,7 +165,7 @@ pub async fn event_loop(
                 state = StateChange::Room;
             }
 
-            let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events).await;
+            let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events, true).await;
             if new_state == StateChange::Room {
                 state = StateChange::Room;
             }
@@ -305,6 +310,7 @@ async fn handle_timeline(
     bot_state: &mut State,
     room_id: &RoomId,
     events: Vec<ruma::Raw<AnySyncRoomEvent>>,
+    handle_messages: bool,
 ) -> StateChange {
     let mut roomstate = StateChange::None;
 
@@ -320,7 +326,7 @@ async fn handle_timeline(
         let mut entry = real_entry.clone();
 
         match event {
-            AnySyncRoomEvent::Message(msg) => {
+            AnySyncRoomEvent::Message(msg) if !handle_messages => {
                 // Send all message events to the backend server.
                 if let AnySyncMessageEvent::RoomMessage(msg) = msg {
                     if let Err(e) =
