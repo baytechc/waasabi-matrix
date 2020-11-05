@@ -24,6 +24,8 @@ struct Config {
 }
 
 async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
+    let strapi_client = strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
+
     let client = HttpsClient::https(cfg.matrix_homeserver, None);
 
     // Once randomly chosen, this is now our ID.
@@ -39,9 +41,6 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
         )
         .await?;
     let bot_id = UserId::try_from(&cfg.matrix_username[..])?;
-
-    let strapi_client = strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
-
     let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users.clone(), strapi_client);
 
     let server = api::server(cfg.host, cfg.api_secret, cfg.admin_users, client);
