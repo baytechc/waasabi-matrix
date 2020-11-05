@@ -68,6 +68,9 @@ pub async fn real_room_id(
     matrix_client: &HttpsClient,
     room_alias_id: &str,
 ) -> anyhow::Result<RoomId> {
+    if let Ok(room_id) = RoomId::try_from(room_alias_id) {
+        return Ok(room_id);
+    }
     let room_alias_id = RoomAliasId::try_from(room_alias_id)?;
 
     let res = matrix_client
