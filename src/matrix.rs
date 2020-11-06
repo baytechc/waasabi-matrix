@@ -4,6 +4,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use serde::Deserialize;
 use ruma::{
     api::client::r0::{
         alias::get_alias,
@@ -13,7 +14,7 @@ use ruma::{
         },
         message::send_message_event,
         room::{create_room, Visibility},
-        state::send_state_event_for_empty_key,
+        state::{send_state_event_for_empty_key, get_state_events_for_empty_key},
     },
     events::{
         room::{
@@ -154,17 +155,42 @@ pub async fn create_room(
     Ok(room_id)
 }
 
+#[derive(Deserialize)]
+struct PowerLevelEvents {
+    events: BTreeMap<String, u32>,
+    users: BTreeMap<String, u32>,
+}
+
 pub async fn op_user(
     matrix_client: &HttpsClient,
     room_id: &RoomId,
     user_ids: &[UserId],
 ) -> anyhow::Result<()> {
+    // Get the current power levels.
+    let req = get_state_events_for_empty_key::Request::new(room_id, EventType::RoomPowerLevels);
+    let resp = matrix_client.request(req).await?;
+
+    let content: PowerLevelEvents = serde_json::from_str(resp.content.get())?;
+
     let mut user_map = BTreeMap::new();
-    for user in user_ids.iter() {
-        user_map.insert(user.clone(), 100.into());
+
+    // Set old state
+    for (user, level) in content.users {
+        let user_id = match UserId::try_from(user) {
+            Ok(id) => id,
+            Err(_) => continue
+        };
+        user_map.insert(user_id, level.into());
+    }
+
+    // Now add the new users
+    for user_id in user_ids.iter() {
+        user_map.insert(user_id.clone(), 100.into());
     }
 
     let mut event_map = BTreeMap::new();
+
+    // default state
     event_map.insert(EventType::RoomAvatar, 50.into());
     event_map.insert(EventType::RoomCanonicalAlias, 50.into());
     event_map.insert(EventType::RoomEncrypted, 100.into());
@@ -173,6 +199,32 @@ pub async fn op_user(
     event_map.insert(EventType::RoomPowerLevels, 100.into());
     event_map.insert(EventType::RoomServerAcl, 100.into());
     event_map.insert(EventType::RoomTombstone, 100.into());
+
+    // overwriting with old state
+    if let Some(&level) = content.events.get("m.room.avatar") {
+        event_map.insert(EventType::RoomAvatar, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.canonical_alias") {
+        event_map.insert(EventType::RoomCanonicalAlias, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.encrypted") {
+        event_map.insert(EventType::RoomEncrypted, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.history_visibility") {
+        event_map.insert(EventType::RoomHistoryVisibility, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.name") {
+        event_map.insert(EventType::RoomName, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.power_levels") {
+        event_map.insert(EventType::RoomPowerLevels, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.server_acl") {
+        event_map.insert(EventType::RoomServerAcl, level.into());
+    }
+    if let Some(&level) = content.events.get("m.room.tombstone") {
+        event_map.insert(EventType::RoomTombstone, level.into());
+    }
 
     let content = AnyStateEventContent::RoomPowerLevels(PowerLevelsEventContent {
         ban: 50.into(),
