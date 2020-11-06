@@ -4,17 +4,13 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use serde::Deserialize;
 use ruma::{
     api::client::r0::{
         alias::get_alias,
-        membership::{
-            invite_user::{self, InvitationRecipient},
-            //joined_rooms,
-        },
+        membership::invite_user::{self, InvitationRecipient},
         message::send_message_event,
         room::{create_room, Visibility},
-        state::{send_state_event_for_empty_key, get_state_events_for_empty_key},
+        state::{get_state_events_for_empty_key, send_state_event_for_empty_key},
     },
     events::{
         room::{
@@ -22,7 +18,7 @@ use ruma::{
             history_visibility::{HistoryVisibility, HistoryVisibilityEventContent},
             join_rules::{JoinRule, JoinRulesEventContent},
             message::{MessageEventContent, TextMessageEventContent},
-            power_levels::{NotificationPowerLevels, PowerLevelsEventContent},
+            power_levels::PowerLevelsEventContent,
         },
         AnyInitialStateEvent, AnyMessageEventContent, AnyStateEventContent, EventType,
         InitialStateEvent,
@@ -30,6 +26,7 @@ use ruma::{
     RoomAliasId, RoomId, UserId,
 };
 use ruma_client::{self, HttpsClient};
+use serde::Deserialize;
 
 /// Monotonically increasing counter
 fn next_id() -> String {
@@ -178,7 +175,7 @@ pub async fn op_user(
     for (user, level) in content.users {
         let user_id = match UserId::try_from(user) {
             Ok(id) => id,
-            Err(_) => continue
+            Err(_) => continue,
         };
         user_map.insert(user_id, level.into());
     }
@@ -227,16 +224,9 @@ pub async fn op_user(
     }
 
     let content = AnyStateEventContent::RoomPowerLevels(PowerLevelsEventContent {
-        ban: 50.into(),
         events: event_map,
-        events_default: 0.into(),
-        invite: 50.into(),
-        kick: 50.into(),
-        redact: 50.into(),
-        state_default: 50.into(),
-        users_default: 0.into(),
         users: user_map,
-        notifications: NotificationPowerLevels { room: 50.into() },
+        ..Default::default()
     });
     let req = send_state_event_for_empty_key::Request::new(room_id, &content);
     matrix_client.request(req).await?;
