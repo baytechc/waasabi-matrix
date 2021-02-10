@@ -69,3 +69,14 @@ Or build install it right away:
 ```
 cargo install --path .
 ```
+
+To build this app requires `libopenssl`. On Ubuntu, use:
+
+```
+apt-get install libssl-dev
+```
+
+Otherwise you might be receiving an error message during build:
+```
+Package openssl was not found in the pkg-config search path.
+```
