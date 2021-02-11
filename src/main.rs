@@ -7,9 +7,10 @@ use ruma_client::HttpsClient;
 
 mod api;
 mod bot;
+mod config;
+mod dispatcher;
 mod matrix;
 mod strapi;
-mod dispatcher;
 
 struct Config {
     matrix_homeserver: Uri,
@@ -24,7 +25,8 @@ struct Config {
 }
 
 async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
-    let strapi_client = strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
+    let strapi_client =
+        strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
 
     let client = HttpsClient::https(cfg.matrix_homeserver, None);
 
@@ -41,7 +43,12 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
         )
         .await?;
     let bot_id = UserId::try_from(&cfg.matrix_username[..])?;
-    let bot = bot::event_loop(bot_id, client.clone(), cfg.admin_users.clone(), strapi_client);
+    let bot = bot::event_loop(
+        bot_id,
+        client.clone(),
+        cfg.admin_users.clone(),
+        strapi_client,
+    );
 
     let server = api::server(cfg.host, cfg.api_secret, cfg.admin_users, client);
     let (bot_ended, server_ended) = future::join(bot, server).await;
@@ -55,20 +62,19 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let matrix_homeserver = env::var("MATRIX_HOMESERVER").expect("Need MATRIX_HOMESERVER");
-    let matrix_homeserver = matrix_homeserver.parse()?;
-    let matrix_username = env::var("MATRIX_USER").expect("Need MATRIX_USER");
-    let matrix_password = env::var("MATRIX_PASSWORD").expect("Need MATRIX_PASSWORD");
-    let strapi_host = env::var("STRAPI_HOST").expect("Need STRAPI_HOST");
-    let strapi_user = env::var("STRAPI_USER").expect("Need STRAPI_USER");
-    let strapi_password = env::var("STRAPI_PASSWORD").expect("Need STRAPI_PASSWORD");
-    let admin_users = env::var("ADMIN_USERS").unwrap_or_else(|_| "".into());
-    let admin_users = admin_users.split(",").map(|s| s.to_string()).collect();
-    let host = env::var("HOST")
-        .unwrap_or_else(|_| "127.0.0.1:8383".into())
-        .parse()
-        .expect("Invalid host");
-    let api_secret = env::var("API_SECRET").expect("Need API_SECRET");
+    let mut args = env::args().skip(1);
+    let cfg = args.next().expect("Missing configuration file.");
+    let cfg = config::parse(&cfg).expect("Can't parse configuration file.");
+
+    let matrix_homeserver = cfg.server.homeserver;
+    let matrix_username = cfg.server.user;
+    let matrix_password = cfg.server.password;
+    let strapi_host = cfg.strapi.host;
+    let strapi_user = cfg.strapi.user;
+    let strapi_password = cfg.strapi.password;
+    let admin_users = cfg.server.admins;
+    let host = cfg.api.listen;
+    let api_secret = cfg.api.secret;
 
     let config = Config {
         matrix_homeserver,
