@@ -44,6 +44,7 @@ pub struct ApiConfig {
 #[derive(Deserialize)]
 pub struct BackendConfig {
     pub host: String,
+    pub integrations_endpoint: Option<String>,
     pub user: String,
     pub password: String,
 }

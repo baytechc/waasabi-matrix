@@ -69,7 +69,7 @@ pub async fn post(
             "Sending data: {}",
             serde_json::to_string_pretty(&data).unwrap()
         );
-        let _ = strapi::post(&client, "_integrations/matrix", &data).await;
+        let _ = strapi::post(&client, &client.integrations, &data).await;
     });
 
     Ok(())
@@ -85,9 +85,7 @@ pub async fn rooms(
     client: &strapi::Client,
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
-    let rooms = all_rooms
-        .values().cloned()
-        .collect::<Vec<_>>();
+    let rooms = all_rooms.values().cloned().collect::<Vec<_>>();
     let rooms = Rooms { rooms };
 
     let client = client.clone();
@@ -100,7 +98,7 @@ pub async fn rooms(
             "Sending data: {}",
             serde_json::to_string_pretty(&data).unwrap()
         );
-        let _ = strapi::post(&client, "_integrations/matrix", &data).await;
+        let _ = strapi::post(&client, &client.integrations, &data).await;
     });
 
     Ok(())

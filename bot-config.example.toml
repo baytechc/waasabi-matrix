@@ -10,5 +10,6 @@ secret = "secret-api-access-token"
 
 [backend]
 host = "https://live.example.com/waasabi"
+integrations_endpoint = "_integrations/matrix"
 user = "username"
 password = "backend-p4ssword"
