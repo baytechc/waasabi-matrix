@@ -67,7 +67,7 @@ pub async fn post(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&data).unwrap()
             );
-            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
+            let _ = strapi::post(&client, &client.integrations, &data).await;
         });
     });
 
@@ -95,7 +95,7 @@ pub async fn rooms(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&data).unwrap()
             );
-            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
+            let _ = strapi::post(&client, &client.integrations, &data).await;
         });
     });
 

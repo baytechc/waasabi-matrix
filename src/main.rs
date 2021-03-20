@@ -17,6 +17,7 @@ struct Config {
     matrix_username: String,
     matrix_password: String,
     strapi_host: String,
+    strapi_integrations_endpoint: String,
     strapi_user: String,
     strapi_password: String,
     admin_users: Vec<String>,
@@ -26,7 +27,7 @@ struct Config {
 
 async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     let strapi_client =
-        strapi::login(&cfg.strapi_host, &cfg.strapi_user, &cfg.strapi_password).await?;
+        strapi::login(&cfg.strapi_host, &cfg.strapi_integrations_endpoint, &cfg.strapi_user, &cfg.strapi_password).await?;
 
     let client = HttpsClient::https(cfg.matrix_homeserver, None);
 
@@ -76,11 +77,14 @@ async fn main() -> anyhow::Result<()> {
     let host = cfg.api.listen;
     let api_secret = cfg.api.secret;
 
+    let strapi_integrations_endpoint = cfg.backend.integrations_endpoint.unwrap_or("_integrations/matrix".to_string());
+
     let config = Config {
         matrix_homeserver,
         matrix_username,
         matrix_password,
         strapi_host,
+        strapi_integrations_endpoint,
         strapi_user,
         strapi_password,
         admin_users,
