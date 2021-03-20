@@ -1,0 +1,14 @@
+[matrix]
+homeserver = "https://matrix.server"
+user = "@ferris:matrix.server"
+password = "s3cret!passw0rd"
+admins = ["@admin:matrix.server"]
+
+[api]
+listen = "127.0.0.1:8383"
+secret = "secret-api-access-token"
+
+[backend]
+host = "https://live.example.com/waasabi"
+user = "username"
+password = "backend-p4ssword"
