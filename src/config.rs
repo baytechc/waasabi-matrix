@@ -7,17 +7,17 @@ use serde::{de, Deserialize};
 #[derive(Deserialize)]
 pub struct Configuration {
     /// Configuration for the Matrix server.
-    pub server: Server,
+    pub matrix: MatrixConfig,
 
     /// Configuration for the HTTP API.
-    pub api: Api,
+    pub api: ApiConfig,
 
-    /// Configuration for the Strapi backend
-    pub strapi: Strapi,
+    /// Configuration for the backend
+    pub backend: BackendConfig,
 }
 
 #[derive(Deserialize)]
-pub struct Server {
+pub struct MatrixConfig {
     /// The bot's homeserver.
     #[serde(deserialize_with = "deserialize_uri")]
     pub homeserver: Uri,
@@ -33,7 +33,7 @@ pub struct Server {
 }
 
 #[derive(Deserialize)]
-pub struct Api {
+pub struct ApiConfig {
     /// The host and port to listen on.
     pub listen: SocketAddr,
 
@@ -42,7 +42,7 @@ pub struct Api {
 }
 
 #[derive(Deserialize)]
-pub struct Strapi {
+pub struct BackendConfig {
     pub host: String,
     pub user: String,
     pub password: String,

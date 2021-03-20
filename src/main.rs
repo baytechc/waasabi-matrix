@@ -66,13 +66,13 @@ async fn main() -> anyhow::Result<()> {
     let cfg = args.next().expect("Missing configuration file.");
     let cfg = config::parse(&cfg).expect("Can't parse configuration file.");
 
-    let matrix_homeserver = cfg.server.homeserver;
-    let matrix_username = cfg.server.user;
-    let matrix_password = cfg.server.password;
-    let strapi_host = cfg.strapi.host;
-    let strapi_user = cfg.strapi.user;
-    let strapi_password = cfg.strapi.password;
-    let admin_users = cfg.server.admins;
+    let matrix_homeserver = cfg.matrix.homeserver;
+    let matrix_username = cfg.matrix.user;
+    let matrix_password = cfg.matrix.password;
+    let strapi_host = cfg.backend.host;
+    let strapi_user = cfg.backend.user;
+    let strapi_password = cfg.backend.password;
+    let admin_users = cfg.matrix.admins;
     let host = cfg.api.listen;
     let api_secret = cfg.api.secret;
 
