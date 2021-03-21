@@ -77,7 +77,7 @@ async fn main() -> anyhow::Result<()> {
     let host = cfg.api.listen;
     let api_secret = cfg.api.secret;
 
-    let strapi_integrations_endpoint = cfg.backend.integrations_endpoint.unwrap_or("_integrations/matrix".to_string());
+    let strapi_integrations_endpoint = cfg.backend.integrations_endpoint.unwrap_or("event-manager/integrations".to_string());
 
     let config = Config {
         matrix_homeserver,

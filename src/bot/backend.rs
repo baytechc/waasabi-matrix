@@ -17,6 +17,7 @@ use super::RoomInfo;
 struct Data<'a, T> {
     #[serde(rename = "type")]
     typ: &'a str,
+    event: &'a str,
 
     data: T
 }
@@ -24,7 +25,7 @@ struct Data<'a, T> {
 #[derive(Serialize)]
 struct ChatMessage {
     received_by: String,
-    channel: String,
+    channel_id: String,
     channel_name: Option<String>,
     channel_details: JsonValue,
     sender: String,
@@ -50,7 +51,7 @@ pub async fn post(
     };
     let chat_message = ChatMessage {
         received_by: "ferris-bot".into(),
-        channel: room_id.as_str().into(),
+        channel_id: room_id.as_str().into(),
         channel_name: room_info.name.clone(),
         channel_details: json!({"alias": room_info.alias}),
         sender: msg.sender.as_str().into(),
@@ -62,7 +63,7 @@ pub async fn post(
     let client = client.clone();
     dispatcher::launch(move |rt| {
         rt.block_on(async {
-            let data = Data { typ: "message", data: chat_message };
+            let data = Data { typ: "chat", event: "new-message", data: chat_message };
             log::debug!(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&data).unwrap()
@@ -74,23 +75,17 @@ pub async fn post(
     Ok(())
 }
 
-#[derive(Serialize)]
-struct Rooms {
-    rooms: Vec<RoomInfo>,
-}
-
 /// Act on room changes
 pub async fn rooms(
     client: &strapi::Client,
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
     let rooms = all_rooms.values().map(|room| room.clone()).collect::<Vec<_>>();
-    let rooms = Rooms { rooms };
 
     let client = client.clone();
     dispatcher::launch(move |rt| {
         rt.block_on(async {
-            let data = Data { typ: "rooms", data: rooms };
+            let data = Data { typ: "chat", event: "channel-info", data: rooms };
             log::debug!(
                 "Sending data: {}",
                 serde_json::to_string_pretty(&data).unwrap()
