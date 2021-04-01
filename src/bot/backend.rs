@@ -1,4 +1,4 @@
-use crate::{strapi, dispatcher};
+use crate::strapi;
 use std::collections::HashMap;
 
 use ruma::{
@@ -18,7 +18,7 @@ struct Data<'a, T> {
     #[serde(rename = "type")]
     typ: &'a str,
 
-    data: T
+    data: T,
 }
 
 #[derive(Serialize)]
@@ -60,15 +60,16 @@ pub async fn post(
     };
 
     let client = client.clone();
-    dispatcher::launch(move |rt| {
-        rt.block_on(async {
-            let data = Data { typ: "message", data: chat_message };
-            log::debug!(
-                "Sending data: {}",
-                serde_json::to_string_pretty(&data).unwrap()
-            );
-            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
-        });
+    tokio::spawn(async move {
+        let data = Data {
+            typ: "message",
+            data: chat_message,
+        };
+        log::debug!(
+            "Sending data: {}",
+            serde_json::to_string_pretty(&data).unwrap()
+        );
+        let _ = strapi::post(&client, "_integrations/matrix", &data).await;
     });
 
     Ok(())
@@ -84,19 +85,23 @@ pub async fn rooms(
     client: &strapi::Client,
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
-    let rooms = all_rooms.values().map(|room| room.clone()).collect::<Vec<_>>();
+    let rooms = all_rooms
+        .values()
+        .map(|room| room.clone())
+        .collect::<Vec<_>>();
     let rooms = Rooms { rooms };
 
     let client = client.clone();
-    dispatcher::launch(move |rt| {
-        rt.block_on(async {
-            let data = Data { typ: "rooms", data: rooms };
-            log::debug!(
-                "Sending data: {}",
-                serde_json::to_string_pretty(&data).unwrap()
-            );
-            let _ = strapi::post(&client, "_integrations/matrix", &data).await;
-        });
+    tokio::spawn(async move {
+        let data = Data {
+            typ: "rooms",
+            data: rooms,
+        };
+        log::debug!(
+            "Sending data: {}",
+            serde_json::to_string_pretty(&data).unwrap()
+        );
+        let _ = strapi::post(&client, "_integrations/matrix", &data).await;
     });
 
     Ok(())

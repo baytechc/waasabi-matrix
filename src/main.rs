@@ -8,7 +8,6 @@ use ruma_client::HttpsClient;
 mod api;
 mod bot;
 mod config;
-mod dispatcher;
 mod matrix;
 mod strapi;
 
