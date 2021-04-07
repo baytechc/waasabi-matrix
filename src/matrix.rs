@@ -1,3 +1,5 @@
+//! Matrix API calls.
+
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -96,20 +98,7 @@ pub async fn invite_user(
     Ok(())
 }
 
-/// Get the current list of joined rooms.
-///
-/// Returns a list of room IDs.
-//pub async fn joined_rooms(matrix_client: &HttpsClient) -> anyhow::Result<Vec<String>> {
-    //let response = matrix_client.request(joined_rooms::Request::new()).await?;
-
-    //let rooms = response
-        //.joined_rooms
-        //.into_iter()
-        //.map(|room| room.as_str().to_string())
-        //.collect::<Vec<_>>();
-    //Ok(rooms)
-//}
-
+/// Create a new room.
 pub async fn create_room(
     matrix_client: &HttpsClient,
     alias: &str,
@@ -145,10 +134,6 @@ pub async fn create_room(
     let response = matrix_client.request(req).await?;
     let room_id = response.room_id;
 
-    //for user in invite {
-    //invite_user(matrix_client, &room_id, user.as_str()).await?
-    //}
-
     Ok(room_id)
 }
 
@@ -158,6 +143,7 @@ struct PowerLevelEvents {
     users: BTreeMap<String, u32>,
 }
 
+/// Give a user admin capabilities in a room.
 pub async fn op_user(
     matrix_client: &HttpsClient,
     room_id: &RoomId,

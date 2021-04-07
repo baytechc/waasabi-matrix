@@ -1,3 +1,12 @@
+//! # The bot's control API.
+//!
+//! This serves a simple API over HTTP.
+//!
+//! It implements 2 endpoints:
+//!
+//! * `POST /invite` - Invite a user to a channel.
+//! * `POST /room` - Create a new room.
+
 use super::matrix;
 use std::{convert::TryFrom, net::SocketAddr, sync::Arc};
 
@@ -76,10 +85,14 @@ pub async fn server(
     server.await
 }
 
+/// Invite a user to an existing room.
 #[derive(Deserialize, Debug)]
 struct ApiInviteUser {
+    /// The full user ID to invite.
     user_id: String,
+    /// The room ID to invite the user into.
     room_id: String,
+    /// The API key
     api_key: String,
 }
 
@@ -108,11 +121,16 @@ async fn invite(
     Ok(response)
 }
 
+/// Create a new room.
 #[derive(Deserialize, Debug)]
 struct ApiCreateRoom {
+    /// The API key
     api_key: String,
+    /// The room's alias.
     alias: String,
+    /// The room's name.
     name: String,
+    /// The optional topic for the room.
     topic: Option<String>,
 }
 

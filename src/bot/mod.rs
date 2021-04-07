@@ -1,3 +1,9 @@
+//! Main bot logic
+//!
+//! This is the main event loop of the bot.
+//! It waits for messages from the server, updates its internal state about rooms,
+//! reacts to invitations and commands and relays received messages.
+
 use crate::{matrix, strapi};
 use std::{collections::HashMap, convert::TryFrom, time::Duration};
 

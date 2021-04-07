@@ -1,3 +1,19 @@
+//! # ferris-bot Your friendly Rusty crab, guiding you through the conference
+//!
+//! ferris-bot is a Matrix chat bot that can handle logging, moderation and some admin operations.
+//! It is used for the rustfest.global conference.
+//!
+//! It handles a multitude of tasks:
+//!
+//! * Invite users to channels upon a request to the API
+//!   * This lets your conference attendee management system invoke user invitations to your
+//!     conference rooms.
+//! * Relay messages to the backend
+//!   * This way you can embed and show messages right next to your stream.
+//! * Handle permissions in channels and for admin users
+//!   * Privileged users can create new channels and invite users.
+//! * Whatever additional command you want to implement.
+
 use std::{convert::TryFrom, env, net::SocketAddr};
 
 use futures_util::future;

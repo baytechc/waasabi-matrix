@@ -1,3 +1,8 @@
+//! Simple Strapi client implementation.
+//!
+//! Strapi is the currently used backend, storing data about the event
+//! and acting as the hub between the Matrix chat and the event frontend.
+
 use anyhow::bail;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
