@@ -88,7 +88,7 @@ pub async fn event_loop(
         )
         .await;
 
-        if let Err(_) = invite_resp {
+        if invite_resp.is_err() {
             pending_invites.insert(room_id, 3);
         } else {
             state = StateChange::Room;
@@ -136,7 +136,7 @@ pub async fn event_loop(
                 &mut bot_state.all_room_info,
             )
             .await;
-            if let Ok(_) = invite_resp {
+            if invite_resp.is_ok() {
                 to_delete.push(room_id.clone());
                 state = StateChange::Room;
             } else if *tries_left == 0 {
@@ -158,7 +158,7 @@ pub async fn event_loop(
             )
             .await;
 
-            if let Err(_) = invite_resp {
+            if invite_resp.is_err() {
                 pending_invites.insert(room_id, 3);
             } else {
                 state = StateChange::Room;

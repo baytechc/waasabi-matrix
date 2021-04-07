@@ -28,7 +28,7 @@ pub async fn handle(
         //}
 
         if msg.starts_with("!invite ") {
-            let mut parts = msg.split(" ");
+            let mut parts = msg.split(' ');
             let name = parts.nth(1).unwrap();
             println!("Inviting {} to {}", name, room_id);
             if !name.is_empty() {
@@ -37,7 +37,7 @@ pub async fn handle(
         }
 
         if msg.starts_with("!create ") {
-            let parts = msg.splitn(3, " ").skip(1).collect::<Vec<_>>();
+            let parts = msg.splitn(3, ' ').skip(1).collect::<Vec<_>>();
             if parts.len() != 2 {
                 matrix::send_message(
                     &client,
@@ -59,7 +59,7 @@ pub async fn handle(
         }
 
         if msg.starts_with("!op ") {
-            let parts = msg.split(" ").skip(1).collect::<Vec<_>>();
+            let parts = msg.split(' ').skip(1).collect::<Vec<_>>();
             if parts.len() > 1 {
                 let msg = "Invalid. Require no or one argument.";
                 matrix::send_message(&client, &room_id, msg).await?;

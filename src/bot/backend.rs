@@ -86,8 +86,7 @@ pub async fn rooms(
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
     let rooms = all_rooms
-        .values()
-        .map(|room| room.clone())
+        .values().cloned()
         .collect::<Vec<_>>();
     let rooms = Rooms { rooms };
 
