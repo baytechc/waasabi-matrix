@@ -62,9 +62,33 @@ struct State {
 }
 
 impl State {
+    /// Handle a sync response.
+    ///
+    /// This is the main event handler.
+    /// It handles invites and all room events, such as messages or state changes.
+    async fn handle_sync(&mut self, sync: sync_events::Response) {
+        log::trace!("Response: {:#?}", sync);
+        let mut state_change = false;
+
+        // Immediately accept new room invitations and retry pending invites.
+        state_change |= self.handle_invites(sync.rooms.invite).await;
+
+        // Only look at rooms the user hasn't left yet
+        state_change |= self.handle_rooms(sync.rooms.join).await;
+
+        if state_change {
+            if let Err(e) = backend::rooms(&self.strapi_client, &self.all_room_info).await {
+                log::error!("Failed to post room changes to the backend. Error: {:?}", e);
+            }
+        }
+    }
+
     /// React to new invites by trying to join.
     ///
     /// If joining a room fails the invitiation will be retried later, up to 3 times.
+    ///
+    /// Returns `true` if any room state changed.
+    /// Returns `false` otherwise.
     async fn handle_invites(&mut self, invites: BTreeMap<RoomId, InvitedRoom>) -> bool {
         // First insert new invites to be tried.
         for (room_id, _) in invites {
@@ -78,7 +102,7 @@ impl State {
             *tries_left -= 1;
 
             let invite_resp =
-                handle_invitation(&self.client, room_id.clone(), &mut self.all_room_info).await;
+                accept_invitation(&self.client, room_id.clone(), &mut self.all_room_info).await;
             if invite_resp.is_ok() {
                 to_delete.push(room_id.clone());
                 state_change = true;
@@ -95,10 +119,13 @@ impl State {
     }
 
     /// Handle incoming state changes and timeline events for joined rooms.
+    ///
+    /// Returns `true` if any room state changed.
+    /// Returns `false` otherwise.
     async fn handle_rooms(&mut self, rooms: BTreeMap<RoomId, JoinedRoom>) -> bool {
         let mut state_change = false;
         for (room_id, room) in rooms {
-            state_change |= handle_state(self, &room_id, room.state.events).await;
+            state_change |= handle_room_events(self, &room_id, room.state.events).await;
             state_change |= handle_timeline(self, &room_id, room.timeline.events, false).await;
         }
         state_change
@@ -123,53 +150,32 @@ pub async fn event_loop(
         pending_invites: HashMap::new(),
     };
 
-    let mut state_change = false;
-
-    // Handle pending invitations on first sync.
-    state_change |= bot_state
-        .handle_invites(initial_sync_response.rooms.invite)
-        .await;
-
-    // Collect additional room information such as room names and canonical aliases.
-    state_change |= bot_state
-        .handle_rooms(initial_sync_response.rooms.join)
-        .await;
-
-    if state_change {
-        if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await {
-            log::error!("Failed to post room changes to the backend. Error: {:?}", e);
-        }
-    }
+    let next_batch = initial_sync_response.next_batch.clone();
+    bot_state.handle_sync(initial_sync_response).await;
 
     let mut sync_stream = Box::pin(bot_state.client.sync(
         None,
-        initial_sync_response.next_batch,
+        next_batch,
         PresenceState::Online,
         Some(Duration::from_secs(30)),
     ));
 
     while let Some(res) = sync_stream.try_next().await? {
-        log::trace!("Response: {:#?}", res);
-        let mut state_change = false;
-
-        // Immediately accept new room invitations and retry pending invites.
-        state_change |= bot_state.handle_invites(res.rooms.invite).await;
-
-        // Only look at rooms the user hasn't left yet
-        state_change |= bot_state.handle_rooms(res.rooms.join).await;
-
-        if state_change {
-            if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await
-            {
-                log::error!("Failed to post room changes to the backend. Error: {:?}", e);
-            }
-        }
+        bot_state.handle_sync(res).await;
     }
+
+    log::info!("Sync stream ended.");
 
     Ok(())
 }
 
-async fn handle_invitation(
+/// Join the room by invitiation.
+///
+/// This updates the room info state.
+///
+/// Returns `Ok(())` if the room was joined.
+/// Returns an error if joining the room failed.
+async fn accept_invitation(
     client: &HttpsClient,
     room_id: RoomId,
     all_room_info: &mut HashMap<RoomId, RoomInfo>,
@@ -196,7 +202,8 @@ async fn handle_invitation(
     Ok(())
 }
 
-async fn handle_state(
+/// Handle state events within a room.
+async fn handle_room_events(
     bot_state: &mut State,
     room_id: &RoomId,
     events: Vec<ruma::Raw<AnySyncStateEvent>>,
@@ -219,6 +226,14 @@ async fn handle_state(
     state
 }
 
+/// Handle a state event within the given room.
+///
+/// This may change the room info state.
+/// If new users join the room and they are in the admin user group,
+/// they will be given appropriate permissions.
+///
+/// Returns `true` if any room state changed.
+/// Returns `false` otherwise.
 async fn handle_statechange(
     bot_state: &State,
     entry: &mut RoomInfo,
@@ -277,6 +292,15 @@ async fn handle_statechange(
     }
 }
 
+/// Handle any room event from the timeline.
+///
+/// This will:
+///
+/// * Relay room messages to the backend.
+/// * Handle any room state change.
+///
+/// Returns `true` if any room state changed.
+/// Returns `false` otherwise.
 async fn handle_timeline(
     bot_state: &mut State,
     room_id: &RoomId,
