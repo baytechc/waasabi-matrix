@@ -82,10 +82,7 @@ pub async fn rooms(
     client: &strapi::Client,
     all_rooms: &HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
-    let rooms = all_rooms
-        .values()
-        .map(|room| room.clone())
-        .collect::<Vec<_>>();
+    let rooms = all_rooms.values().cloned().collect::<Vec<_>>();
 
     let client = client.clone();
     tokio::spawn(async move {
