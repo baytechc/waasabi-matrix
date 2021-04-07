@@ -1,6 +1,6 @@
 //! Main bot logic
 //!
-//! This is the main event loop of the bot.
+//! This is the main logic of the bot.
 //! It waits for messages from the server, updates its internal state about rooms,
 //! reacts to invitations and commands and relays received messages.
 
@@ -31,25 +31,57 @@ use serde::Serialize;
 mod backend;
 mod messages;
 
-#[derive(Serialize)]
-struct Message {
-    room: String,
-    user: String,
-    message: String,
+/// The bot's main event loop.
+///
+/// Continously stream server responses and handle all state changes and messages.
+pub async fn event_loop(
+    bot_id: UserId,
+    client: HttpsClient,
+    admin_users: Vec<String>,
+    strapi_client: strapi::Client,
+) -> anyhow::Result<()> {
+    let initial_sync_response = client.request(sync_events::Request::new()).await?;
+    log::trace!("Initial Sync: {:#?}", initial_sync_response);
+
+    let mut bot_state = State {
+        client,
+        bot_id,
+        admin_users,
+        all_room_info: HashMap::new(),
+        strapi_client,
+        pending_invites: HashMap::new(),
+    };
+
+    let next_batch = initial_sync_response.next_batch.clone();
+    bot_state.handle_sync(initial_sync_response, false).await;
+
+    let mut sync_stream = Box::pin(bot_state.client.sync(
+        None,
+        next_batch,
+        PresenceState::Online,
+        Some(Duration::from_secs(30)),
+    ));
+
+    while let Some(res) = sync_stream.try_next().await? {
+        bot_state.handle_sync(res, true).await;
+    }
+
+    log::info!("Sync stream ended.");
+
+    Ok(())
 }
 
+/// A room's known information.
 #[derive(Clone, Debug, Serialize, Default)]
 pub struct RoomInfo {
+    /// The room ID
     id: String,
+    /// The room's name, if known.
     name: Option<String>,
+    /// The room's canonical alias, if known.
     alias: Option<String>,
+    /// The room's topic, if known.
     topic: Option<String>,
-}
-
-#[derive(Serialize)]
-struct StrapiEvent<'a> {
-    room: RoomInfo,
-    data: &'a SyncMessageEvent<MessageEventContent>,
 }
 
 struct State {
@@ -66,7 +98,7 @@ impl State {
     ///
     /// This is the main event handler.
     /// It handles invites and all room events, such as messages or state changes.
-    async fn handle_sync(&mut self, sync: sync_events::Response) {
+    async fn handle_sync(&mut self, sync: sync_events::Response, handle_messages: bool) {
         log::trace!("Response: {:#?}", sync);
         let mut state_change = false;
 
@@ -74,8 +106,9 @@ impl State {
         state_change |= self.handle_invites(sync.rooms.invite).await;
 
         // Only look at rooms the user hasn't left yet
-        state_change |= self.handle_rooms(sync.rooms.join).await;
+        state_change |= self.handle_rooms(sync.rooms.join, handle_messages).await;
 
+        // If any room state changed, relay that information to the backend.
         if state_change {
             if let Err(e) = backend::rooms(&self.strapi_client, &self.all_room_info).await {
                 log::error!("Failed to post room changes to the backend. Error: {:?}", e);
@@ -122,51 +155,19 @@ impl State {
     ///
     /// Returns `true` if any room state changed.
     /// Returns `false` otherwise.
-    async fn handle_rooms(&mut self, rooms: BTreeMap<RoomId, JoinedRoom>) -> bool {
+    async fn handle_rooms(
+        &mut self,
+        rooms: BTreeMap<RoomId, JoinedRoom>,
+        handle_messages: bool,
+    ) -> bool {
         let mut state_change = false;
         for (room_id, room) in rooms {
             state_change |= handle_room_events(self, &room_id, room.state.events).await;
-            state_change |= handle_timeline(self, &room_id, room.timeline.events, false).await;
+            state_change |=
+                handle_timeline(self, &room_id, room.timeline.events, handle_messages).await;
         }
         state_change
     }
-}
-
-pub async fn event_loop(
-    bot_id: UserId,
-    client: HttpsClient,
-    admin_users: Vec<String>,
-    strapi_client: strapi::Client,
-) -> anyhow::Result<()> {
-    let initial_sync_response = client.request(sync_events::Request::new()).await?;
-    log::trace!("Initial Sync: {:#?}", initial_sync_response);
-
-    let mut bot_state = State {
-        client,
-        bot_id,
-        admin_users,
-        all_room_info: HashMap::new(),
-        strapi_client,
-        pending_invites: HashMap::new(),
-    };
-
-    let next_batch = initial_sync_response.next_batch.clone();
-    bot_state.handle_sync(initial_sync_response).await;
-
-    let mut sync_stream = Box::pin(bot_state.client.sync(
-        None,
-        next_batch,
-        PresenceState::Online,
-        Some(Duration::from_secs(30)),
-    ));
-
-    while let Some(res) = sync_stream.try_next().await? {
-        bot_state.handle_sync(res).await;
-    }
-
-    log::info!("Sync stream ended.");
-
-    Ok(())
 }
 
 /// Join the room by invitiation.
