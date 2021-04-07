@@ -86,7 +86,7 @@ pub async fn event_loop(
             Some(invitation),
             &mut bot_state.all_room_info,
         )
-            .await;
+        .await;
 
         if let Err(_) = invite_resp {
             pending_invites.insert(room_id, 3);
@@ -102,7 +102,8 @@ pub async fn event_loop(
             state = StateChange::Room;
         }
 
-        let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events, false).await;
+        let new_state =
+            handle_timeline(&mut bot_state, &room_id, room.timeline.events, false).await;
         if new_state == StateChange::Room {
             state = StateChange::Room;
         }
@@ -171,7 +172,8 @@ pub async fn event_loop(
                 state = StateChange::Room;
             }
 
-            let new_state = handle_timeline(&mut bot_state, &room_id, room.timeline.events, true).await;
+            let new_state =
+                handle_timeline(&mut bot_state, &room_id, room.timeline.events, true).await;
             if new_state == StateChange::Room {
                 state = StateChange::Room;
             }

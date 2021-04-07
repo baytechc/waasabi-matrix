@@ -48,14 +48,22 @@ pub async fn login(base: &str, identifier: &str, password: &str) -> anyhow::Resu
         identifier,
         password,
     };
-    let response = http.post(&_url(base, "auth/local")).json(&login).send().await?;
+    let response = http
+        .post(&_url(base, "auth/local"))
+        .json(&login)
+        .send()
+        .await?;
     if response.status() != StatusCode::OK {
         bail!("Failed to login, status: {:?}", response.status());
     }
 
     let response: LoginResponse = response.json().await?;
     let jwt = response.jwt;
-    Ok(Client { http, jwt, base: base.to_string() })
+    Ok(Client {
+        http,
+        jwt,
+        base: base.to_string(),
+    })
 }
 
 /// Post to the API with an authorized client.
