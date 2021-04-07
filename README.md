@@ -35,6 +35,7 @@ The bot collects all room information and incoming messages and forwards them to
 | `host`       | URL of the exposed API root (for Waasabi servers this is by default under `<origin>/waasabi` ) |
 | `user`       | Username with API access privileges (*Event Manager Integrations* role) |
 | `password`   | Password of the authenticated user |
+| `integrations_endpoint` | **Optional** The endpoint to use for posting Matrix information. Default: `event-manager/integrations` |
 
 
 ### Bot API
