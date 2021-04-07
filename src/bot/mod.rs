@@ -58,6 +58,51 @@ struct State {
     admin_users: Vec<String>,
     all_room_info: HashMap<RoomId, RoomInfo>,
     strapi_client: strapi::Client,
+    pending_invites: HashMap<RoomId, usize>,
+}
+
+impl State {
+    /// React to new invites by trying to join.
+    ///
+    /// If joining a room fails the invitiation will be retried later, up to 3 times.
+    async fn handle_invites(&mut self, invites: BTreeMap<RoomId, InvitedRoom>) -> bool {
+        // First insert new invites to be tried.
+        for (room_id, _) in invites {
+            // 4 = try once immediately, retry up to 3 times.
+            self.pending_invites.insert(room_id, 4);
+        }
+
+        let mut state_change = false;
+        let mut to_delete = vec![];
+        for (room_id, tries_left) in self.pending_invites.iter_mut() {
+            *tries_left -= 1;
+
+            let invite_resp =
+                handle_invitation(&self.client, room_id.clone(), &mut self.all_room_info).await;
+            if invite_resp.is_ok() {
+                to_delete.push(room_id.clone());
+                state_change = true;
+            } else if *tries_left == 0 {
+                to_delete.push(room_id.clone());
+            }
+        }
+
+        for room_id in to_delete {
+            self.pending_invites.remove(&room_id);
+        }
+
+        state_change
+    }
+
+    /// Handle incoming state changes and timeline events for joined rooms.
+    async fn handle_rooms(&mut self, rooms: BTreeMap<RoomId, JoinedRoom>) -> bool {
+        let mut state_change = false;
+        for (room_id, room) in rooms {
+            state_change |= handle_state(self, &room_id, room.state.events).await;
+            state_change |= handle_timeline(self, &room_id, room.timeline.events, false).await;
+        }
+        state_change
+    }
 }
 
 pub async fn event_loop(
@@ -75,21 +120,20 @@ pub async fn event_loop(
         admin_users,
         all_room_info: HashMap::new(),
         strapi_client,
+        pending_invites: HashMap::new(),
     };
 
-    let mut pending_invites: HashMap<RoomId, usize> = HashMap::new();
+    let mut state_change = false;
 
     // Handle pending invitations on first sync.
-    let mut state_change = handle_invites(
-        initial_sync_response.rooms.invite,
-        &bot_state.client,
-        &mut bot_state.all_room_info,
-        &mut pending_invites,
-    )
-    .await;
+    state_change |= bot_state
+        .handle_invites(initial_sync_response.rooms.invite)
+        .await;
 
     // Collect additional room information such as room names and canonical aliases.
-    state_change |= handle_joined_rooms(initial_sync_response.rooms.join, &mut bot_state).await;
+    state_change |= bot_state
+        .handle_rooms(initial_sync_response.rooms.join)
+        .await;
 
     if state_change {
         if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await {
@@ -108,24 +152,11 @@ pub async fn event_loop(
         log::trace!("Response: {:#?}", res);
         let mut state_change = false;
 
-        state_change |= handle_pending_invites(
-            &mut pending_invites,
-            &bot_state.client,
-            &mut bot_state.all_room_info,
-        )
-        .await;
-
-        // Immediately accept new room invitations.
-        state_change |= handle_invites(
-            res.rooms.invite,
-            &bot_state.client,
-            &mut bot_state.all_room_info,
-            &mut pending_invites,
-        )
-        .await;
+        // Immediately accept new room invitations and retry pending invites.
+        state_change |= bot_state.handle_invites(res.rooms.invite).await;
 
         // Only look at rooms the user hasn't left yet
-        state_change |= handle_joined_rooms(res.rooms.join, &mut bot_state).await;
+        state_change |= bot_state.handle_rooms(res.rooms.join).await;
 
         if state_change {
             if let Err(e) = backend::rooms(&bot_state.strapi_client, &bot_state.all_room_info).await
@@ -138,67 +169,9 @@ pub async fn event_loop(
     Ok(())
 }
 
-async fn handle_invites(
-    invites: BTreeMap<RoomId, InvitedRoom>,
-    client: &HttpsClient,
-    all_room_info: &mut HashMap<RoomId, RoomInfo>,
-    pending_invites: &mut HashMap<RoomId, usize>,
-) -> bool {
-    let mut state_change = false;
-
-    for (room_id, invitation) in invites {
-        let invite_resp =
-            handle_invitation(client, room_id.clone(), Some(invitation), all_room_info).await;
-
-        if invite_resp.is_err() {
-            pending_invites.insert(room_id, 3);
-        } else {
-            state_change = true;
-        }
-    }
-
-    state_change
-}
-
-async fn handle_pending_invites(
-    pending_invites: &mut HashMap<RoomId, usize>,
-    client: &HttpsClient,
-    all_room_info: &mut HashMap<RoomId, RoomInfo>,
-) -> bool {
-    let mut state_change = false;
-    let mut to_delete = vec![];
-    for (room_id, tries_left) in pending_invites.iter_mut() {
-        *tries_left -= 1;
-
-        let invite_resp = handle_invitation(client, room_id.clone(), None, all_room_info).await;
-        if invite_resp.is_ok() {
-            to_delete.push(room_id.clone());
-            state_change = true;
-        } else if *tries_left == 0 {
-            to_delete.push(room_id.clone());
-        }
-    }
-
-    for room_id in to_delete {
-        pending_invites.remove(&room_id);
-    }
-
-    state_change
-}
-
-async fn handle_joined_rooms(rooms: BTreeMap<RoomId, JoinedRoom>, bot_state: &mut State) -> bool {
-    let mut state_change = false;
-    for (room_id, room) in rooms {
-        state_change |= handle_state(bot_state, &room_id, room.state.events).await;
-        state_change |= handle_timeline(bot_state, &room_id, room.timeline.events, false).await;
-    }
-    state_change
-}
-
 async fn handle_invitation(
     client: &HttpsClient,
     room_id: RoomId,
-    invitation: Option<InvitedRoom>,
     all_room_info: &mut HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
     log::info!("Joining '{}' by invitation", room_id.as_str());
@@ -207,9 +180,8 @@ async fn handle_invitation(
         .await
     {
         log::error!(
-            "Failed to respond to invitation. Room ID: {:?}, Invitation: {:?}\nError: {:?}",
+            "Failed to respond to invitation. Room ID: {:?}, \nError: {:?}",
             room_id.as_str(),
-            invitation,
             e
         );
         return Err(e.into());
