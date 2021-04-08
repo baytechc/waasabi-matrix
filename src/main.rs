@@ -14,7 +14,10 @@
 //!   * Privileged users can create new channels and invite users.
 //! * Whatever additional command you want to implement.
 
-use std::{convert::TryFrom, env, net::SocketAddr};
+use std::convert::TryFrom;
+use std::env;
+use std::net::SocketAddr;
+use std::process;
 
 use futures_util::future;
 use http::Uri;
@@ -84,8 +87,24 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     let mut args = env::args().skip(1);
-    let cfg = args.next().expect("Missing configuration file.");
-    let cfg = config::parse(&cfg).expect("Can't parse configuration file.");
+    let cfg = match args.next() {
+        Some(arg) => arg,
+        None => {
+            eprintln!("Missing configuration file.");
+            eprintln!();
+            eprintln!("Usage: ferris-bot <path to config file>");
+            process::exit(1);
+        }
+    };
+    let cfg = match config::parse(&cfg) {
+        Ok(cfg) => cfg,
+        Err(e) => {
+            eprintln!("Can't parse configuration file.");
+            eprintln!();
+            eprintln!("Error: {}", e);
+            process::exit(1);
+        }
+    };
 
     let matrix_homeserver = cfg.matrix.homeserver;
     let matrix_username = cfg.matrix.user;
