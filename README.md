@@ -1,6 +1,6 @@
-# ferris-bot - Your friendly Rusty crab, guiding you through the conference
+# waasabi-matrix - Your friendly Rusty crab, guiding you through the conference
 
-`ferris-bot` is a Matrix chat bot that can handle logging, moderation and some admin operations.
+`waasabi-matrix` is a Matrix chat bot that can handle logging, moderation and some admin operations.
 
 
 ## Configuration
@@ -88,7 +88,7 @@ These are commands that the bot understands.
 
 ## Build
 
-Build the code, then use the binary in `target/release/ferris-bot`:
+Build the code, then use the binary in `target/release/waasabi-matrix`:
 
 ```
 cargo build --release

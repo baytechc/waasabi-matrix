@@ -47,7 +47,7 @@ pub async fn login(
     password: &str,
 ) -> anyhow::Result<Client> {
     let http = reqwest::Client::builder()
-        .user_agent("ferris-bot/0.1.0")
+        .user_agent("waasabi-matrix/0.1.0")
         .build()?;
 
     let login = Login {

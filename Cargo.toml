@@ -1,5 +1,5 @@
 [package]
-name = "ferris-bot"
+name = "waasabi-matrix"
 description = "Your friendly Ferris in a Matrix server near you"
 version = "0.2.0"
 authors = ["Jan-Erik Rediger <janerik@fnordig.de>"]
@@ -8,8 +8,6 @@ edition = "2018"
 [dependencies]
 ruma-client = { git = "https://github.com/ruma/ruma/", branch = "main" }
 ruma = { git = "https://github.com/ruma/ruma/", branch = "main", features = ["client-api"] }
-#ruma-client = { path = "/Users/jrediger/code/rust/ruma/ruma-client" }
-#ruma = { path = "/Users/jrediger/code/rust/ruma/ruma", features = ["client-api"] }
 
 tokio = { version = "0.2.0", features = ["full"] }
 futures-util = "0.3.6"

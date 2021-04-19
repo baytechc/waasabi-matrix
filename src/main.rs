@@ -1,6 +1,6 @@
-//! # ferris-bot Your friendly Rusty crab, guiding you through the conference
+//! # waasabi-matrix - Your friendly Rusty crab, guiding you through the conference
 //!
-//! ferris-bot is a Matrix chat bot that can handle logging, moderation and some admin operations.
+//! `waasabi-matrix` is a Matrix chat bot that can handle logging, moderation and some admin operations.
 //! It is used for the rustfest.global conference.
 //!
 //! It handles a multitude of tasks:
@@ -57,7 +57,7 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     // Once randomly chosen, this is now our ID.
     // Avoids creating new "devices" with every run.
     let device_id: &'static DeviceId = "TBANTADCIL".into();
-    let device_name = "ferris-bot";
+    let device_name = "waasabi-matrix";
     client
         .log_in(
             &cfg.matrix_username,
@@ -92,7 +92,7 @@ async fn main() -> anyhow::Result<()> {
         None => {
             eprintln!("Missing configuration file.");
             eprintln!();
-            eprintln!("Usage: ferris-bot <path to config file>");
+            eprintln!("Usage: waasabi-matrix <path to config file>");
             process::exit(1);
         }
     };

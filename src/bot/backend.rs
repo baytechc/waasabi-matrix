@@ -50,7 +50,7 @@ pub async fn post(
         _ => None,
     };
     let chat_message = ChatMessage {
-        received_by: "ferris-bot".into(),
+        received_by: "waasabi-matrix".into(),
         channel_id: room_id.as_str().into(),
         channel_name: room_info.name.clone(),
         channel_details: json!({"alias": room_info.alias}),

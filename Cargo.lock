@@ -208,30 +208,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ferris-bot"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "env_logger",
- "futures-util",
- "governor",
- "http",
- "hyper",
- "hyper-tls",
- "log",
- "once_cell",
- "reqwest",
- "ruma",
- "ruma-client",
- "serde",
- "serde_json",
- "tokio",
- "toml",
- "url",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1633,6 +1609,30 @@ name = "version_check"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
+
+[[package]]
+name = "waasabi-matrix"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "env_logger",
+ "futures-util",
+ "governor",
+ "http",
+ "hyper",
+ "hyper-tls",
+ "log",
+ "once_cell",
+ "reqwest",
+ "ruma",
+ "ruma-client",
+ "serde",
+ "serde_json",
+ "tokio",
+ "toml",
+ "url",
+]
 
 [[package]]
 name = "want"
