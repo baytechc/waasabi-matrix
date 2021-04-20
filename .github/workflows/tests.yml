@@ -51,3 +51,27 @@ jobs:
 
     - name: Docs
       run: cargo doc --no-deps
+
+  license_check:
+    name: Check licenses of dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Install cargo-deny
+      run: |
+        DENY_VERSION=0.9.1
+        DENY_PKG=cargo-deny-${DENY_VERSION}-x86_64-unknown-linux-musl
+        DENY_SUFFIX=.tar.gz
+        DENY_SHA256=a2dc10ca868120f67b232d6687c60dda50f285508886b0aff26a80e9cfab524e
+        curl -sfSL --retry 5 -O "https://github.com/EmbarkStudios/cargo-deny/releases/download/${DENY_VERSION}/${DENY_PKG}${DENY_SUFFIX}"
+        echo "${DENY_SHA256} *${DENY_PKG}${DENY_SUFFIX}" | shasum -a 256 -c -
+        tar -xf "${DENY_PKG}${DENY_SUFFIX}"
+        cp ./${DENY_PKG}/cargo-deny cargo-deny
+
+    - name: Check licenses
+      run: ./cargo-deny check licenses
