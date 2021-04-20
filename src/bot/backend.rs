@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use ruma::{
     events::{
-        room::message::{MessageEventContent, TextMessageEventContent},
+        room::message::{MessageEventContent, MessageType, TextMessageEventContent},
         SyncMessageEvent,
     },
     RoomId,
@@ -44,9 +44,10 @@ pub async fn post(
     log::debug!("Posting message from {:?}", room_id);
 
     let msg_txt = match &msg.content {
-        MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }) => {
-            Some(msg_body.to_string())
-        }
+        MessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent { body: msg_body, .. }),
+            ..
+        } => Some(msg_body.to_string()),
         _ => None,
     };
     let chat_message = ChatMessage {

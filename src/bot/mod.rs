@@ -18,14 +18,14 @@ use ruma::{
     events::{
         room::{
             member::MembershipState,
-            message::{MessageEventContent, TextMessageEventContent},
+            message::{MessageEventContent, MessageType, TextMessageEventContent},
         },
         AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, SyncMessageEvent, SyncStateEvent,
     },
     presence::PresenceState,
     RoomId, UserId,
 };
-use ruma_client::{self, HttpsClient};
+use ruma_client::{self, Client};
 use serde::Serialize;
 
 mod backend;
@@ -36,7 +36,7 @@ mod messages;
 /// Continously stream server responses and handle all state changes and messages.
 pub async fn event_loop(
     bot_id: UserId,
-    client: HttpsClient,
+    client: Client,
     admin_users: Vec<String>,
     strapi_client: strapi::Client,
 ) -> anyhow::Result<()> {
@@ -58,7 +58,7 @@ pub async fn event_loop(
     let mut sync_stream = Box::pin(bot_state.client.sync(
         None,
         next_batch,
-        PresenceState::Online,
+        &PresenceState::Online,
         Some(Duration::from_secs(30)),
     ));
 
@@ -85,7 +85,7 @@ pub struct RoomInfo {
 }
 
 struct State {
-    client: HttpsClient,
+    client: Client,
     bot_id: UserId,
     admin_users: Vec<String>,
     all_room_info: HashMap<RoomId, RoomInfo>,
@@ -177,7 +177,7 @@ impl State {
 /// Returns `Ok(())` if the room was joined.
 /// Returns an error if joining the room failed.
 async fn accept_invitation(
-    client: &HttpsClient,
+    client: &Client,
     room_id: RoomId,
     all_room_info: &mut HashMap<RoomId, RoomInfo>,
 ) -> anyhow::Result<()> {
@@ -207,7 +207,7 @@ async fn accept_invitation(
 async fn handle_room_events(
     bot_state: &mut State,
     room_id: &RoomId,
-    events: Vec<ruma::Raw<AnySyncStateEvent>>,
+    events: Vec<ruma::serde::Raw<AnySyncStateEvent>>,
 ) -> bool {
     let real_entry = bot_state
         .all_room_info
@@ -305,7 +305,7 @@ async fn handle_statechange(
 async fn handle_timeline(
     bot_state: &mut State,
     room_id: &RoomId,
-    events: Vec<ruma::Raw<AnySyncRoomEvent>>,
+    events: Vec<ruma::serde::Raw<AnySyncRoomEvent>>,
     handle_messages: bool,
 ) -> bool {
     let mut roomstate = false;
@@ -333,9 +333,13 @@ async fn handle_timeline(
 
                     if let SyncMessageEvent {
                         content:
-                            MessageEventContent::Text(TextMessageEventContent {
-                                body: msg_body, ..
-                            }),
+                            MessageEventContent {
+                                msgtype:
+                                    MessageType::Text(TextMessageEventContent {
+                                        body: msg_body, ..
+                                    }),
+                                ..
+                            },
                         sender,
                         ..
                     } = msg

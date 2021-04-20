@@ -22,7 +22,7 @@ use std::process;
 use futures_util::future;
 use http::Uri;
 use ruma::{DeviceId, UserId};
-use ruma_client::HttpsClient;
+use ruma_client::Client as RumaClient;
 
 mod api;
 mod bot;
@@ -52,7 +52,7 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     )
     .await?;
 
-    let client = HttpsClient::https(cfg.matrix_homeserver, None);
+    let client = RumaClient::new(cfg.matrix_homeserver, None);
 
     // Once randomly chosen, this is now our ID.
     // Avoids creating new "devices" with every run.
