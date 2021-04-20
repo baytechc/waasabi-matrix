@@ -28,27 +28,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f093eed78becd229346bf859eec0aa4dd7ddde0757287b2b4107a1f09c80002"
 
 [[package]]
-name = "async-stream"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3670df70cbc01729f901f94c887814b3c68db038aad1329a418bae178bc5295c"
-dependencies = [
- "async-stream-impl",
- "futures-core",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3548b8efc9f8e8a5a0a2808c5bd8451a9031b9e5b879a79590304ae928b0a70"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -369,29 +348,10 @@ dependencies = [
  "http",
  "indexmap",
  "slab",
- "tokio 0.2.25",
- "tokio-util 0.3.1",
+ "tokio",
+ "tokio-util",
  "tracing",
  "tracing-futures",
-]
-
-[[package]]
-name = "h2"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc018e188373e2777d0ef2467ebff62a08e66c3f5857b23c8fbec3018210dc00"
-dependencies = [
- "bytes 1.0.1",
- "fnv",
- "futures-core",
- "futures-sink",
- "futures-util",
- "http",
- "indexmap",
- "slab",
- "tokio 1.5.0",
- "tokio-util 0.6.6",
- "tracing",
 ]
 
 [[package]]
@@ -409,6 +369,15 @@ name = "hashbrown"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
+
+[[package]]
+name = "heck"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87cbf45460356b7deeb5e3415b5563308c0a9b057c85e12b06ad551f98d0a6ac"
+dependencies = [
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "hermit-abi"
@@ -441,17 +410,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-body"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dfb77c123b4e2f72a2069aeae0b4b4949cc7e966df277813fc16347e7549737"
-dependencies = [
- "bytes 1.0.1",
- "http",
- "pin-project-lite 0.2.6",
-]
-
-[[package]]
 name = "httparse"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -479,39 +437,15 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-util",
- "h2 0.2.7",
+ "h2",
  "http",
- "http-body 0.3.1",
+ "http-body",
  "httparse",
  "httpdate",
  "itoa",
  "pin-project",
- "socket2 0.3.19",
- "tokio 0.2.25",
- "tower-service",
- "tracing",
- "want",
-]
-
-[[package]]
-name = "hyper"
-version = "0.14.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bf09f61b52cfcf4c00de50df88ae423d6c02354e385a86341133b5338630ad1"
-dependencies = [
- "bytes 1.0.1",
- "futures-channel",
- "futures-core",
- "futures-util",
- "h2 0.3.2",
- "http",
- "http-body 0.4.1",
- "httparse",
- "httpdate",
- "itoa",
- "pin-project",
- "socket2 0.4.0",
- "tokio 1.5.0",
+ "socket2",
+ "tokio",
  "tower-service",
  "tracing",
  "want",
@@ -524,23 +458,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d979acc56dcb5b8dddba3917601745e877576475aa046df3226eabdecef78eed"
 dependencies = [
  "bytes 0.5.6",
- "hyper 0.13.10",
+ "hyper",
  "native-tls",
- "tokio 0.2.25",
+ "tokio",
  "tokio-tls",
-]
-
-[[package]]
-name = "hyper-tls"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
-dependencies = [
- "bytes 1.0.1",
- "hyper 0.14.5",
- "native-tls",
- "tokio 1.5.0",
- "tokio-native-tls",
 ]
 
 [[package]]
@@ -562,7 +483,6 @@ checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
 dependencies = [
  "autocfg",
  "hashbrown 0.9.1",
- "serde",
 ]
 
 [[package]]
@@ -606,9 +526,9 @@ dependencies = [
 
 [[package]]
 name = "js_int"
-version = "0.2.0"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcae89e078a96b781b38f36225bb3a174b8f6e905dfec550dd16a13539c82acc"
+checksum = "b96797f53235a1d6dc985f244a69de54b04c45b7e0e357a35c85a45a847d92f2"
 dependencies = [
  "serde",
 ]
@@ -707,26 +627,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "mio"
-version = "0.7.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf80d3e903b34e0bd7282b218398aec54e082c840d9baf8339e0080a0c542956"
-dependencies = [
- "libc",
- "log",
- "miow 0.3.7",
- "ntapi",
- "winapi 0.3.9",
-]
-
-[[package]]
 name = "mio-named-pipes"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0840c1c50fd55e521b247f949c241c9997709f23bd7f023b9762cd561e935656"
 dependencies = [
  "log",
- "mio 0.6.23",
+ "mio",
  "miow 0.3.7",
  "winapi 0.3.9",
 ]
@@ -739,7 +646,7 @@ checksum = "afcb699eb26d4332647cc848492bbc15eafb26f08d0304550d5aa1f612e066f0"
 dependencies = [
  "iovec",
  "libc",
- "mio 0.6.23",
+ "mio",
 ]
 
 [[package]]
@@ -806,15 +713,6 @@ name = "nonzero_ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44a1290799eababa63ea60af0cbc3f03363e328e58f32fb0294798ed3e85f444"
-
-[[package]]
-name = "ntapi"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f6bb902e437b6d86e03cce10a7e2af662292c5dfef23b65899ea3ac9354ad44"
-dependencies = [
- "winapi 0.3.9",
-]
 
 [[package]]
 name = "num_cpus"
@@ -891,12 +789,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "paste"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acbf547ad0c65e31259204bd90935776d1c693cec2f4ff7abb7a1bbbd40dfe58"
-
-[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -954,11 +846,10 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 
 [[package]]
 name = "proc-macro-crate"
-version = "1.0.0"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41fdbd1df62156fbc5945f4762632564d7d038153091c3fcf1067f6aef7cff92"
+checksum = "1d6ea3c4595b96363c13943497db34af4460fb474a95c43f4446ad341b8c9785"
 dependencies = [
- "thiserror",
  "toml",
 ]
 
@@ -1089,9 +980,9 @@ dependencies = [
  "futures-core",
  "futures-util",
  "http",
- "http-body 0.3.1",
- "hyper 0.13.10",
- "hyper-tls 0.4.3",
+ "http-body",
+ "hyper",
+ "hyper-tls",
  "ipnet",
  "js-sys",
  "lazy_static",
@@ -1104,7 +995,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
- "tokio 0.2.25",
+ "tokio",
  "tokio-tls",
  "url",
  "wasm-bindgen",
@@ -1115,8 +1006,8 @@ dependencies = [
 
 [[package]]
 name = "ruma"
-version = "0.0.3"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.0.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "assign",
  "js_int",
@@ -1130,23 +1021,25 @@ dependencies = [
 
 [[package]]
 name = "ruma-api"
-version = "0.17.0-alpha.4"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.17.0-alpha.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "http",
  "percent-encoding",
  "ruma-api-macros",
+ "ruma-common",
  "ruma-identifiers",
  "ruma-serde",
  "serde",
  "serde_json",
+ "strum",
  "thiserror",
 ]
 
 [[package]]
 name = "ruma-api-macros"
-version = "0.17.0-alpha.4"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.17.0-alpha.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1156,15 +1049,15 @@ dependencies = [
 
 [[package]]
 name = "ruma-client"
-version = "0.5.0-alpha.2"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.4.0"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "assign",
- "async-stream",
  "futures-core",
+ "futures-util",
  "http",
- "hyper 0.14.5",
- "hyper-tls 0.5.0",
+ "hyper",
+ "hyper-tls",
  "ruma-api",
  "ruma-client-api",
  "ruma-common",
@@ -1177,8 +1070,8 @@ dependencies = [
 
 [[package]]
 name = "ruma-client-api"
-version = "0.10.0-alpha.3"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.10.0-alpha.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "assign",
  "http",
@@ -1192,28 +1085,38 @@ dependencies = [
  "ruma-serde",
  "serde",
  "serde_json",
+ "strum",
 ]
 
 [[package]]
 name = "ruma-common"
-version = "0.5.0"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.2.0"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
- "indexmap",
  "js_int",
- "maplit",
+ "ruma-common-macros",
  "ruma-identifiers",
  "ruma-serde",
  "serde",
  "serde_json",
- "tracing",
- "wildmatch",
+ "strum",
+]
+
+[[package]]
+name = "ruma-common-macros"
+version = "0.2.0"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
 name = "ruma-events"
-version = "0.22.0-alpha.3"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.22.0-alpha.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "js_int",
  "ruma-common",
@@ -1222,12 +1125,13 @@ dependencies = [
  "ruma-serde",
  "serde",
  "serde_json",
+ "strum",
 ]
 
 [[package]]
 name = "ruma-events-macros"
-version = "0.22.0-alpha.3"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.22.0-alpha.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1237,21 +1141,19 @@ dependencies = [
 
 [[package]]
 name = "ruma-identifiers"
-version = "0.19.0"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.17.4"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
- "paste",
  "ruma-identifiers-macros",
  "ruma-identifiers-validation",
- "ruma-serde",
- "ruma-serde-macros",
  "serde",
+ "strum",
 ]
 
 [[package]]
 name = "ruma-identifiers-macros"
-version = "0.19.0"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.17.4"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1261,31 +1163,23 @@ dependencies = [
 
 [[package]]
 name = "ruma-identifiers-validation"
-version = "0.3.0"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.1.1"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
+dependencies = [
+ "serde",
+ "strum",
+]
 
 [[package]]
 name = "ruma-serde"
-version = "0.3.1"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
+version = "0.2.3"
+source = "git+https://github.com/ruma/ruma/?rev=5b904ddbd7cd91974d5332eb1867136d7445061b#5b904ddbd7cd91974d5332eb1867136d7445061b"
 dependencies = [
  "form_urlencoded",
  "itoa",
  "js_int",
- "ruma-serde-macros",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "ruma-serde-macros"
-version = "0.3.1"
-source = "git+https://github.com/ruma/ruma/?branch=main#c816630058ab625d93ebab294e9e6c02dd9d866c"
-dependencies = [
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -1409,13 +1303,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "socket2"
-version = "0.4.0"
+name = "strum"
+version = "0.19.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e3dfc207c526015c632472a77be09cf1b6e46866581aecae5cc38fb4235dea2"
+checksum = "b89a286a7e3b5720b9a477b23253bc50debac207c8d21505f8e70b36792f11b5"
 dependencies = [
- "libc",
- "winapi 0.3.9",
+ "strum_macros",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.19.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e61bb0be289045cb80bfce000512e32d09f8337e54c186725da381377ad1f8d5"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1500,7 +1405,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "memchr",
- "mio 0.6.23",
+ "mio",
  "mio-named-pipes",
  "mio-uds",
  "num_cpus",
@@ -1509,20 +1414,6 @@ dependencies = [
  "slab",
  "tokio-macros",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "tokio"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83f0c8e7c0addab50b663055baf787d0af7f413a46e6e7fb9559a4e4db7137a5"
-dependencies = [
- "autocfg",
- "bytes 1.0.1",
- "libc",
- "memchr",
- "mio 0.7.11",
- "pin-project-lite 0.2.6",
 ]
 
 [[package]]
@@ -1537,23 +1428,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-native-tls"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d995660bd2b7f8c1568414c1126076c13fbb725c40112dc0120b78eb9b717b"
-dependencies = [
- "native-tls",
- "tokio 1.5.0",
-]
-
-[[package]]
 name = "tokio-tls"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a70f4fcd7b3b24fb194f837560168208f669ca8cb70d0c4b862944452396343"
 dependencies = [
  "native-tls",
- "tokio 0.2.25",
+ "tokio",
 ]
 
 [[package]]
@@ -1567,21 +1448,7 @@ dependencies = [
  "futures-sink",
  "log",
  "pin-project-lite 0.1.12",
- "tokio 0.2.25",
-]
-
-[[package]]
-name = "tokio-util"
-version = "0.6.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "940a12c99365c31ea8dd9ba04ec1be183ffe4920102bb7122c2f515437601e8e"
-dependencies = [
- "bytes 1.0.1",
- "futures-core",
- "futures-sink",
- "log",
- "pin-project-lite 0.2.6",
- "tokio 1.5.0",
+ "tokio",
 ]
 
 [[package]]
@@ -1608,19 +1475,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "log",
  "pin-project-lite 0.2.6",
- "tracing-attributes",
  "tracing-core",
-]
-
-[[package]]
-name = "tracing-attributes"
-version = "0.1.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42e6fa53307c8a17e4ccd4dc81cf5ec38db9209f59b222210375b54ee40d1e2"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -1676,6 +1531,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "unicode-segmentation"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb0d2e7be6ae3a5fa87eed5fb451aff96f2573d2694942e40543ae0bbe19c796"
+
+[[package]]
 name = "unicode-xid"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1715,8 +1576,8 @@ dependencies = [
  "futures-util",
  "governor",
  "http",
- "hyper 0.13.10",
- "hyper-tls 0.4.3",
+ "hyper",
+ "hyper-tls",
  "log",
  "once_cell",
  "reqwest",
@@ -1724,7 +1585,7 @@ dependencies = [
  "ruma-client",
  "serde",
  "serde_json",
- "tokio 0.2.25",
+ "tokio",
  "toml",
  "url",
 ]
@@ -1822,12 +1683,6 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
 ]
-
-[[package]]
-name = "wildmatch"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6c48bd20df7e4ced539c12f570f937c6b4884928a87fee70a479d72f031d4e0"
 
 [[package]]
 name = "winapi"
