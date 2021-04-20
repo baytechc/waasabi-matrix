@@ -4,10 +4,11 @@ description = "Your friendly Ferris in a Matrix server near you"
 version = "0.2.0"
 authors = ["Jan-Erik Rediger <janerik@fnordig.de>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
-ruma-client = { git = "https://github.com/ruma/ruma/", branch = "main" }
-ruma = { git = "https://github.com/ruma/ruma/", branch = "main", features = ["client-api"] }
+ruma-client = { git = "https://github.com/ruma/ruma/", rev = "5b904ddbd7cd91974d5332eb1867136d7445061b" }
+ruma = { git = "https://github.com/ruma/ruma/", features = ["client-api"], rev = "5b904ddbd7cd91974d5332eb1867136d7445061b" }
 
 tokio = { version = "0.2.0", features = ["full"] }
 futures-util = "0.3.6"

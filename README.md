@@ -110,3 +110,33 @@ Otherwise you might be receiving an error message during build:
 ```
 Package openssl was not found in the pkg-config search path.
 ```
+
+
+## Contributing
+
+Want to join us?
+Check out our [The "Contributing" section of the guide][contributing].
+
+### Conduct
+
+The waasabi-matrix project adheres to the
+[Contributor Covenant Code of Conduct][code-of-conduct].
+This describes the minimum behavior expected from all contributors.
+
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+
+[code-of-conduct]: https://github.com/baytechc/waasabi-matrix/blob/main/.github/CODE_OF_CONDUCT.md
+[contributing]: https://github.com/baytechc/waasabi-matrix/blob/main/.github/CONTRIBUTING.md
