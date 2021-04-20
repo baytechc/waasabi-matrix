@@ -12,14 +12,14 @@ use ruma::{
         membership::invite_user::{self, InvitationRecipient},
         message::send_message_event,
         room::{create_room, Visibility},
-        state::{get_state_events_for_empty_key, send_state_event_for_empty_key},
+        state::{get_state_events_for_key, send_state_event},
     },
     events::{
         room::{
             guest_access::{GuestAccess, GuestAccessEventContent},
             history_visibility::{HistoryVisibility, HistoryVisibilityEventContent},
             join_rules::{JoinRule, JoinRulesEventContent},
-            message::{MessageEventContent, TextMessageEventContent},
+            message::{MessageEventContent, MessageType, TextMessageEventContent},
             power_levels::PowerLevelsEventContent,
         },
         AnyInitialStateEvent, AnyMessageEventContent, AnyStateEventContent, EventType,
@@ -27,7 +27,7 @@ use ruma::{
     },
     RoomAliasId, RoomId, UserId,
 };
-use ruma_client::{self, HttpsClient};
+use ruma_client::{self, Client};
 use serde::Deserialize;
 
 /// Monotonically increasing counter
@@ -40,7 +40,7 @@ fn next_id() -> String {
 ///
 /// Sends the message as a unformatted plaintext message.
 pub async fn send_message<S: Into<String>>(
-    matrix_client: &HttpsClient,
+    matrix_client: &Client,
     room_id: &RoomId,
     msg: S,
 ) -> anyhow::Result<()> {
@@ -48,13 +48,9 @@ pub async fn send_message<S: Into<String>>(
         .request(send_message_event::Request::new(
             &room_id,
             &next_id(),
-            &AnyMessageEventContent::RoomMessage(MessageEventContent::Text(
-                TextMessageEventContent {
-                    body: msg.into(),
-                    formatted: None,
-                    relates_to: None,
-                },
-            )),
+            &AnyMessageEventContent::RoomMessage(MessageEventContent::new(MessageType::Text(
+                TextMessageEventContent::plain(msg),
+            ))),
         ))
         .await?;
     Ok(())
@@ -64,10 +60,7 @@ pub async fn send_message<S: Into<String>>(
 ///
 /// Parses the room alias from a string.
 /// The room alias should be in the form `#roomname:homeserver`.
-pub async fn real_room_id(
-    matrix_client: &HttpsClient,
-    room_alias_id: &str,
-) -> anyhow::Result<RoomId> {
+pub async fn real_room_id(matrix_client: &Client, room_alias_id: &str) -> anyhow::Result<RoomId> {
     if let Ok(room_id) = RoomId::try_from(room_alias_id) {
         return Ok(room_id);
     }
@@ -85,7 +78,7 @@ pub async fn real_room_id(
 /// Parses the user ID from a string.
 /// The user ID should be in the form `@name:homeserver`
 pub async fn invite_user(
-    matrix_client: &HttpsClient,
+    matrix_client: &Client,
     room_id: &RoomId,
     user_id: &str,
 ) -> anyhow::Result<()> {
@@ -100,7 +93,7 @@ pub async fn invite_user(
 
 /// Create a new room.
 pub async fn create_room(
-    matrix_client: &HttpsClient,
+    matrix_client: &Client,
     alias: &str,
     name: &str,
     topic: Option<&str>,
@@ -145,12 +138,12 @@ struct PowerLevelEvents {
 
 /// Give a user admin capabilities in a room.
 pub async fn op_user(
-    matrix_client: &HttpsClient,
+    matrix_client: &Client,
     room_id: &RoomId,
     user_ids: &[UserId],
 ) -> anyhow::Result<()> {
     // Get the current power levels.
-    let req = get_state_events_for_empty_key::Request::new(room_id, EventType::RoomPowerLevels);
+    let req = get_state_events_for_key::Request::new(room_id, EventType::RoomPowerLevels, "");
     let resp = matrix_client.request(req).await?;
 
     let content: PowerLevelEvents = serde_json::from_str(resp.content.get())?;
@@ -214,7 +207,7 @@ pub async fn op_user(
         users: user_map,
         ..Default::default()
     });
-    let req = send_state_event_for_empty_key::Request::new(room_id, &content);
+    let req = send_state_event::Request::new(room_id, "", &content);
     matrix_client.request(req).await?;
 
     Ok(())

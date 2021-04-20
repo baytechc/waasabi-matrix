@@ -6,7 +6,7 @@ use crate::matrix;
 use std::convert::TryFrom;
 
 use ruma::{RoomId, UserId};
-use ruma_client::{self, HttpsClient};
+use ruma_client::{self, Client};
 
 enum Command {
     /// Ping-pong with the bot
@@ -41,7 +41,7 @@ impl TryFrom<(&'_ str, Vec<String>)> for Command {
 /// Act on room messages
 pub async fn handle(
     bot_id: &UserId,
-    client: &HttpsClient,
+    client: &Client,
     room_id: &RoomId,
     sender: &UserId,
     msg: &str,
@@ -74,12 +74,12 @@ pub async fn handle(
     Ok(())
 }
 
-async fn ping(client: &HttpsClient, room_id: &RoomId) -> anyhow::Result<()> {
+async fn ping(client: &Client, room_id: &RoomId) -> anyhow::Result<()> {
     matrix::send_message(&client, &room_id, "PONG!").await?;
     Ok(())
 }
 
-async fn invite(client: &HttpsClient, room_id: &RoomId, args: &[String]) -> anyhow::Result<()> {
+async fn invite(client: &Client, room_id: &RoomId, args: &[String]) -> anyhow::Result<()> {
     let name = &args[0];
     println!("Inviting {} to {}", name, room_id);
     if !name.is_empty() {
@@ -89,11 +89,7 @@ async fn invite(client: &HttpsClient, room_id: &RoomId, args: &[String]) -> anyh
     Ok(())
 }
 
-async fn op_ask(
-    client: &HttpsClient,
-    room_id: &RoomId,
-    admin_users: &[String],
-) -> anyhow::Result<()> {
+async fn op_ask(client: &Client, room_id: &RoomId, admin_users: &[String]) -> anyhow::Result<()> {
     let users = admin_users.join(", ");
     let msg = format!("Current admins: {}", users);
     matrix::send_message(&client, &room_id, msg).await?;
@@ -101,7 +97,7 @@ async fn op_ask(
 }
 
 async fn op(
-    client: &HttpsClient,
+    client: &Client,
     room_id: &RoomId,
     bot_id: &UserId,
     admin_users: &mut Vec<String>,
@@ -131,7 +127,7 @@ async fn op(
 }
 
 async fn create(
-    client: &HttpsClient,
+    client: &Client,
     room_id: &RoomId,
     admin_users: &mut Vec<String>,
     args: &[String],

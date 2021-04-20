@@ -15,11 +15,11 @@ use hyper::{
     Body, Method, Request, Response, Server, StatusCode,
 };
 use ruma::UserId;
-use ruma_client::{self, HttpsClient};
+use ruma_client::{self, Client};
 use serde::Deserialize;
 
 struct Config {
-    client: HttpsClient,
+    client: Client,
     admin_users: Vec<String>,
     api_secret: String,
 }
@@ -31,7 +31,7 @@ pub async fn server(
     addr: SocketAddr,
     api_secret: String,
     admin_users: Vec<String>,
-    client: HttpsClient,
+    client: Client,
 ) -> anyhow::Result<(), hyper::Error> {
     let config = Arc::new(Config {
         client,
