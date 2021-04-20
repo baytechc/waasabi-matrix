@@ -4,6 +4,7 @@ description = "Your friendly Ferris in a Matrix server near you"
 version = "0.2.0"
 authors = ["Jan-Erik Rediger <janerik@fnordig.de>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 ruma-client = { git = "https://github.com/ruma/ruma/", branch = "main" }
