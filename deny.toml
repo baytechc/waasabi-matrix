@@ -1,0 +1,17 @@
+[licenses]
+unlicensed = "deny"
+copyleft = "deny"
+allow = [
+    "Apache-2.0",
+    "MIT",
+    "BSD-3-Clause",
+    "Zlib",
+]
+
+[sources.allow-org]
+github = ["ruma"]
+
+[advisories]
+ignore = [
+    "RUSTSEC-2020-0016" # net2 unmaintained
+]
