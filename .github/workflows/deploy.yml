@@ -6,6 +6,9 @@ on:
     tags:
       - "*"
 
+permissions:
+  deployments: write
+
 env:
   CRATE_NAME: waasabi-matrix
 
