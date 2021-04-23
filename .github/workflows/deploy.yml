@@ -7,7 +7,7 @@ on:
       - "*"
 
 permissions:
-  deployments: write
+  contents: write
 
 env:
   CRATE_NAME: waasabi-matrix
