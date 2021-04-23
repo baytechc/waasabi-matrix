@@ -1,4 +1,10 @@
-# waasabi-matrix - Your friendly Rusty crab, guiding you through the conference
+# waasabi-matrix
+
+## Your friendly Rusty crab, guiding you through the conference
+
+[![Crates.io version](https://img.shields.io/crates/v/waasabi-matrix.svg)](https://crates.io/crates/waasabi-matrix)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/waasabi-matrix)](README.md#license)
+[![Tests Status](https://github.com/baytechc/waasabi-matrix/workflows/Tests/badge.svg)](https://github.com/baytechc/waasabi-matrix/actions?query=workflow%3ATests)
 
 `waasabi-matrix` is a Matrix chat bot that can handle logging, moderation and some admin operations.
 
