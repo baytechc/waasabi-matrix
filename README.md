@@ -2,7 +2,6 @@
 
 `waasabi-matrix` is a Matrix chat bot that can handle logging, moderation and some admin operations.
 
-
 ## Configuration
 
 The bot needs to be configured before use. The configuration file is in the [TOML](https://toml.io/en/) format. The path to the bot configuration should be specified as a commandline parameter when starting the bot.
