@@ -15,7 +15,8 @@ use hyper::{
     Body, Method, Request, Response, Server, StatusCode,
 };
 use ruma::UserId;
-use ruma_client::{self, Client};
+use ruma_client;
+type Client = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 use serde::Deserialize;
 
 struct Config {

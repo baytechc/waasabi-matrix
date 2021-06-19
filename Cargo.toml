@@ -9,21 +9,21 @@ homepage = "https://github.com/baytechc/waasabi-matrix"
 repository = "https://github.com/baytechc/waasabi-matrix"
 
 [dependencies]
-ruma-client = "0.5.0-alpha.2"
-ruma = { version = "0.0.3" , features = ["client-api", "api"] }
+ruma-client = { version = "0.5.0", features = ["client-api", "hyper-native-tls"] }
+ruma = { version = "0.1.2", features = ["client-api", "api"] }
 
-tokio = { version = "0.2.0", features = ["full"] }
+tokio = { version = "^1", features = ["full"] }
 futures-util = "0.3.6"
 anyhow = "1.0.33"
 url = "2.1.1"
 http = "0.2.1"
-hyper = "0.13.8"
-hyper-tls = "0.4.3"
+hyper = { version = "0.14.9", features = ["server"] }
+hyper-tls = "0.5.0"
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.59"
 log = "0.4.11"
 env_logger = "0.8.1"
-reqwest = { version ="0.10.8", features = ["json"] }
+reqwest = { version ="0.11.3", features = ["json"] }
 crossbeam-channel = "0.5.0"
 once_cell = "1.4.1"
 governor = "0.3.1"

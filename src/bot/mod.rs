@@ -25,7 +25,8 @@ use ruma::{
     presence::PresenceState,
     RoomId, UserId,
 };
-use ruma_client::{self, Client};
+use ruma_client;
+type Client = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 use serde::Serialize;
 
 mod backend;
@@ -40,7 +41,7 @@ pub async fn event_loop(
     admin_users: Vec<String>,
     strapi_client: strapi::Client,
 ) -> anyhow::Result<()> {
-    let initial_sync_response = client.request(sync_events::Request::new()).await?;
+    let initial_sync_response = client.send_request(sync_events::Request::new()).await?;
     log::trace!("Initial Sync: {:#?}", initial_sync_response);
 
     let mut bot_state = State {
@@ -55,7 +56,8 @@ pub async fn event_loop(
     let next_batch = initial_sync_response.next_batch.clone();
     bot_state.handle_sync(initial_sync_response, false).await;
 
-    let mut sync_stream = Box::pin(bot_state.client.sync(
+    let sync_client = bot_state.client.clone();
+    let mut sync_stream = Box::pin(sync_client.sync(
         None,
         next_batch,
         &PresenceState::Online,
@@ -183,7 +185,7 @@ async fn accept_invitation(
 ) -> anyhow::Result<()> {
     log::info!("Joining '{}' by invitation", room_id.as_str());
     if let Err(e) = client
-        .request(join_room_by_id::Request::new(&room_id))
+        .send_request(join_room_by_id::Request::new(&room_id))
         .await
     {
         log::error!(
