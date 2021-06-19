@@ -56,7 +56,8 @@ pub async fn event_loop(
     let next_batch = initial_sync_response.next_batch.clone();
     bot_state.handle_sync(initial_sync_response, false).await;
 
-    let mut sync_stream = Box::pin(bot_state.client.sync(
+    let sync_client = bot_state.client.clone();
+    let mut sync_stream = Box::pin(sync_client.sync(
         None,
         next_batch,
         &PresenceState::Online,
