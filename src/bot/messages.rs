@@ -6,7 +6,8 @@ use crate::matrix;
 use std::convert::TryFrom;
 
 use ruma::{RoomId, UserId};
-use ruma_client::{self, Client};
+use ruma_client;
+type Client = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 
 enum Command {
     /// Ping-pong with the bot

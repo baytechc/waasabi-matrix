@@ -9,7 +9,7 @@ homepage = "https://github.com/baytechc/waasabi-matrix"
 repository = "https://github.com/baytechc/waasabi-matrix"
 
 [dependencies]
-ruma-client = "0.5.0"
+ruma-client = { version = "0.5.0", features = ["client-api", "hyper-native-tls"] }
 ruma = { version = "0.1.2", features = ["client-api", "api"] }
 
 tokio = { version = "0.2.0", features = ["full"] }

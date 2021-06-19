@@ -27,7 +27,8 @@ use ruma::{
     },
     RoomAliasId, RoomId, UserId,
 };
-use ruma_client::{self, Client};
+use ruma_client;
+type Client = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 use serde::Deserialize;
 
 /// Monotonically increasing counter

@@ -22,7 +22,7 @@ use std::process;
 use futures_util::future;
 use http::Uri;
 use ruma::{DeviceId, UserId};
-use ruma_client::Client as RumaClient;
+type RumaClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 
 mod api;
 mod bot;
