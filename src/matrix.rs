@@ -147,7 +147,7 @@ pub async fn op_user(
     let req = get_state_events_for_key::Request::new(room_id, EventType::RoomPowerLevels, "");
     let resp = matrix_client.send_request(req).await?;
 
-    let content: PowerLevelEvents = serde_json::from_str(resp.content.get())?;
+    let content: PowerLevelEvents = resp.content.deserialize_as()?;
 
     let mut user_map = BTreeMap::new();
 
