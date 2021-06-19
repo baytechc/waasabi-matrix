@@ -203,12 +203,12 @@ pub async fn op_user(
         event_map.insert(EventType::RoomTombstone, level.into());
     }
 
-    let content = AnyStateEventContent::RoomPowerLevels(PowerLevelsEventContent {
-        events: event_map,
-        users: user_map,
-        ..Default::default()
-    });
-    let req = send_state_event::Request::new(room_id, "", &content);
+    let mut content = PowerLevelsEventContent::new();
+    content.events = event_map;
+    content.users = user_map;
+    let state_content = AnyStateEventContent::RoomPowerLevels(content);
+
+    let req = send_state_event::Request::new(room_id, "", &state_content);
     matrix_client.send_request(req).await?;
 
     Ok(())
