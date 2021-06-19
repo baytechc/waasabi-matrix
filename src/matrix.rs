@@ -46,7 +46,7 @@ pub async fn send_message<S: Into<String>>(
     msg: S,
 ) -> anyhow::Result<()> {
     matrix_client
-        .request(send_message_event::Request::new(
+        .send_request(send_message_event::Request::new(
             &room_id,
             &next_id(),
             &AnyMessageEventContent::RoomMessage(MessageEventContent::new(MessageType::Text(
@@ -68,7 +68,7 @@ pub async fn real_room_id(matrix_client: &Client, room_alias_id: &str) -> anyhow
     let room_alias_id = RoomAliasId::try_from(room_alias_id)?;
 
     let res = matrix_client
-        .request(get_alias::Request::new(&room_alias_id))
+        .send_request(get_alias::Request::new(&room_alias_id))
         .await?;
     let room_id = res.room_id;
     Ok(room_id)
@@ -86,7 +86,7 @@ pub async fn invite_user(
     let user_id = UserId::try_from(user_id)?;
     let recipient = InvitationRecipient::UserId { user_id: &user_id };
     matrix_client
-        .request(invite_user::Request::new(&room_id, recipient))
+        .send_request(invite_user::Request::new(&room_id, recipient))
         .await?;
 
     Ok(())
@@ -125,7 +125,7 @@ pub async fn create_room(
     ];
     req.initial_state = initial_state;
 
-    let response = matrix_client.request(req).await?;
+    let response = matrix_client.send_request(req).await?;
     let room_id = response.room_id;
 
     Ok(room_id)
@@ -145,7 +145,7 @@ pub async fn op_user(
 ) -> anyhow::Result<()> {
     // Get the current power levels.
     let req = get_state_events_for_key::Request::new(room_id, EventType::RoomPowerLevels, "");
-    let resp = matrix_client.request(req).await?;
+    let resp = matrix_client.send_request(req).await?;
 
     let content: PowerLevelEvents = serde_json::from_str(resp.content.get())?;
 
@@ -209,7 +209,7 @@ pub async fn op_user(
         ..Default::default()
     });
     let req = send_state_event::Request::new(room_id, "", &content);
-    matrix_client.request(req).await?;
+    matrix_client.send_request(req).await?;
 
     Ok(())
 }

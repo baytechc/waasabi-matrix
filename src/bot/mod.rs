@@ -41,7 +41,7 @@ pub async fn event_loop(
     admin_users: Vec<String>,
     strapi_client: strapi::Client,
 ) -> anyhow::Result<()> {
-    let initial_sync_response = client.request(sync_events::Request::new()).await?;
+    let initial_sync_response = client.send_request(sync_events::Request::new()).await?;
     log::trace!("Initial Sync: {:#?}", initial_sync_response);
 
     let mut bot_state = State {
@@ -184,7 +184,7 @@ async fn accept_invitation(
 ) -> anyhow::Result<()> {
     log::info!("Joining '{}' by invitation", room_id.as_str());
     if let Err(e) = client
-        .request(join_room_by_id::Request::new(&room_id))
+        .send_request(join_room_by_id::Request::new(&room_id))
         .await
     {
         log::error!(
