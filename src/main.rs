@@ -52,7 +52,7 @@ async fn matrix_bot(cfg: Config) -> anyhow::Result<()> {
     )
     .await?;
 
-    let client = RumaClient::new(cfg.matrix_homeserver, None);
+    let client = RumaClient::new(cfg.matrix_homeserver.to_string(), None);
 
     // Once randomly chosen, this is now our ID.
     // Avoids creating new "devices" with every run.
